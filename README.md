@@ -1,4 +1,4 @@
-# KY.Core.Common
+# KY.Core.Common ![](https://img.shields.io/nuget/v/KY.Core.Common.svg?style=flat)
 Contains dependency less helper classes
 
 ## Dependency Injection (DI)
