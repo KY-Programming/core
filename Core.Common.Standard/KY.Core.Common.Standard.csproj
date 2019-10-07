@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>KY.Core</RootNamespace>
+    <AssemblyName>KY.Core.Common</AssemblyName>
+    <Version>4.4.0</Version>
+    <Authors>KY-Programming</Authors>
+    <Company>KY-Programmingp</Company>
+    <Product>KY.Core</Product>
+    <Copyright>2019 - KY-Programming</Copyright>
+    <Description>KY.Core.Common for .net Standard</Description>
+    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/KY-Programming/core</PackageProjectUrl>
+    <PackageIconUrl>https://ky-programming.de/images/logos/128.png</PackageIconUrl>
+    <RepositoryUrl>https://github.com/KY-Programming/core</RepositoryUrl>
+    <PackageTags>KY Core Dependency Injection DI</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Revision\**" />
+    <Compile Remove="Sync\**" />
+    <Compile Remove="Validation\**" />
+    <EmbeddedResource Remove="Revision\**" />
+    <EmbeddedResource Remove="Sync\**" />
+    <EmbeddedResource Remove="Validation\**" />
+    <None Remove="Revision\**" />
+    <None Remove="Sync\**" />
+    <None Remove="Validation\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="BindingProvider.cs" />
+    <Compile Remove="CallbackFacade.cs" />
+    <Compile Remove="ChannelFacade.cs" />
+    <Compile Remove="ClientFacade.cs" />
+    <Compile Remove="Extension\CommunicationObjectExtension.cs" />
+    <Compile Remove="Extension\SqlDataReaderExtension.cs" />
+    <Compile Remove="Properties\AssemblyInfo.cs" />
+    <Compile Remove="RuleConverter.cs" />
+    <Compile Remove="ServiceFactoryBase.cs" />
+    <Compile Remove="SettingsService.cs" />
+    <Compile Remove="UniqueDebugItem.cs" />
+    <Compile Remove="WebHelper.cs" />
+  </ItemGroup>
+
+</Project>
