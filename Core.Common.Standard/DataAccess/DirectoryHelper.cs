@@ -31,6 +31,10 @@ namespace KY.Core.DataAccess
         {
             path = this.pathHelper.ToAbsolute(path);
             DirectoryInfo directory = new DirectoryInfo(path);
+            if (!directory.Exists)
+            {
+                return new DirectoryInfo[0];
+            }
             return searchPattern == null ? directory.GetDirectories() : directory.GetDirectories(searchPattern, option);
         }
 
