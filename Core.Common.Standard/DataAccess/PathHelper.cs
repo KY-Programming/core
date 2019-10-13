@@ -135,8 +135,8 @@ namespace KY.Core.DataAccess
 
         public string RelativeTo(string path, string to)
         {
-            string[] pathChunks = this.Format(path).Split(Path.DirectorySeparatorChar);
-            string[] toChunks = this.Format(to).Split(Path.DirectorySeparatorChar);
+            string[] pathChunks = this.Format(path)?.Split(Path.DirectorySeparatorChar) ?? new string[0];
+            string[] toChunks = this.Format(to)?.Split(Path.DirectorySeparatorChar) ?? new string[0];
             int sameChunks = 0;
             for (int index = 0; index < pathChunks.Length; index++)
             {

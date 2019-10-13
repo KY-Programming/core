@@ -27,6 +27,7 @@ namespace KY.Core
             {
                 return assembly;
             }
+            Logger.Trace($"Try to find {args.Name}");
             Regex regex = new Regex(@"(?<name>[\w.]+),\sVersion=(?<version>[\d.]+),\sCulture=(?<culture>[\w-]+),\sPublicKeyToken=(?<token>\w+)");
             Match match = regex.Match(args.Name);
             if (match.Success)
