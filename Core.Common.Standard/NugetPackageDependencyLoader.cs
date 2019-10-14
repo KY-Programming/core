@@ -22,6 +22,10 @@ namespace KY.Core
 
         private static Assembly Resolve(object sender, ResolveEventArgs args)
         {
+            if (args.Name.EndsWith(".resources"))
+            {
+                return null;
+            }
             Assembly assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.FullName == args.Name);
             if (assembly != null)
             {
