@@ -1,3 +1,4 @@
+using System;
 using KY.Core.Properties;
 
 namespace KY.Core
@@ -6,16 +7,20 @@ namespace KY.Core
     {
         public override void Write(LogEntry entry)
         {
-            string formatedMessage;
+            if (Logger.Console.IsConsoleAvailable)
+            {
+                return;
+            }
+            string formattedMessage;
             if (entry.Type == LogType.Error)
             {
-                formatedMessage = string.Format(Resources.ConsoleErrorFormat, entry.Timestamp, entry.CustomType, entry.Message);
+                formattedMessage = string.Format(Resources.ConsoleErrorFormat, entry.Timestamp, entry.CustomType, entry.Message);
             }
             else
             {
-                formatedMessage = string.Format(Resources.ConsoleTraceFormat, entry.Timestamp, entry.Message);
+                formattedMessage = string.Format(Resources.ConsoleTraceFormat, entry.Timestamp, entry.Message);
             }
-            System.Diagnostics.Trace.WriteLine(formatedMessage);
+            Console.WriteLine(formattedMessage);
         }
     }
 }

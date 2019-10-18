@@ -23,24 +23,24 @@ namespace KY.Core
             }
             try
             {
-                string formatedMessage;
+                string formattedMessage;
                 if (entry.Type == LogType.Error)
                 {
-                    formatedMessage = string.Format(Resources.ConsoleErrorFormat, entry.Timestamp, entry.CustomType, entry.Message);
+                    formattedMessage = string.Format(Resources.ConsoleErrorFormat, entry.Timestamp, entry.CustomType, entry.Message);
                 }
                 else
                 {
-                    formatedMessage = string.Format(Resources.ConsoleTraceFormat, entry.Timestamp, entry.Message);
+                    formattedMessage = string.Format(Resources.ConsoleTraceFormat, entry.Timestamp, entry.Message);
                 }
 
-                if (entry.Shortable && formatedMessage.Length >= Console.WindowWidth)
+                if (entry.Shortable && formattedMessage.Length >= Console.WindowWidth)
                 {
-                    formatedMessage = formatedMessage.Substring(0, Console.WindowWidth - 4) + "...";
+                    formattedMessage = formattedMessage.Substring(0, Console.WindowWidth - 4) + "...";
                 }
 
-                Console.WriteLine(formatedMessage.PadRight(Console.WindowWidth - 1));
+                Console.WriteLine(formattedMessage.PadRight(Console.WindowWidth - 1));
             }
-            catch (IOException)
+            catch (IOException exception)
             {
                 this.IsConsoleAvailable = false;
                 Logger.Warning("Console output is not available");

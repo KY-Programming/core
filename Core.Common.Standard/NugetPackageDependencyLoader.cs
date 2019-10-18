@@ -22,7 +22,7 @@ namespace KY.Core
 
         private static Assembly Resolve(object sender, ResolveEventArgs args)
         {
-            if (args.Name.EndsWith(".resources"))
+            if (args.Name.Contains(".resources,"))
             {
                 return null;
             }
