@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using KY.Core.DataAccess;
+using KY.Core.Nuget;
 
 namespace KY.Core
 {
@@ -12,20 +13,31 @@ namespace KY.Core
     {
         private const string PackageDirectoryName = "\\packages\\";
 
-        public List<string> Locations { get; }
+        public List<SearchLocation> Locations { get; }
         public bool SkipResourceAssemblies { get; set; }
         public bool SkipSystemAssemblies { get; set; }
 
-        public NugetAssemblyLocator(IEnumerable<string> locations)
+        public NugetAssemblyLocator(IEnumerable<SearchLocation> locations)
         {
-            this.Locations = new List<string>(locations);
+            this.Locations = new List<SearchLocation>(locations);
             this.SkipResourceAssemblies = true;
+        }
+
+        public NugetAssemblyLocator AddLocation(SearchLocation location)
+        {
+            return this.AddLocation(this.Locations.Count, location);
+        }
+
+        public NugetAssemblyLocator AddLocation(int index, SearchLocation location)
+        {
+            this.Locations.Insert(index, location);
+            return this;
         }
 
         public Assembly Locate(string search, Version defaultVersion = null)
         {
             AssemblyInfo info = (this.GetAssemblyInfoFromLongName(search) ?? this.GetAssemblyInfoFromPath(search, defaultVersion)) ?? new AssemblyInfo(search, defaultVersion);
-            if (this.SkipResourceAssemblies && info.Name.EndsWith(".resources") || this.SkipSystemAssemblies && info.Name.StartsWith("System."))
+            if (this.SkipResourceAssemblies && info.IsResource || this.SkipSystemAssemblies && info.Name.StartsWith("System."))
             {
                 return null;
             }
@@ -34,15 +46,14 @@ namespace KY.Core
             {
                 return assembly;
             }
-            Logger.Trace($"Try to find assembly {info.Name}...");
-            List<string> locations = this.CleanLocations(this.Locations);
-            foreach (string location in locations)
+            Logger.Trace($"Try to find assembly {info.Name}-{info.Version}...");
+            List<SearchLocation> locations = this.CleanLocations(this.Locations);
+            foreach (SearchLocation location in locations)
             {
-                assembly = this.TryFind(location, info.Name)
-                           ?? this.TryFind(location, info.Name)
-                           ?? this.TryFind(location, "bin", info.Name)
-                           ?? this.TryFind(location, "bin", "debug", info.Name)
-                           ?? this.TryFind(location, "bin", "release", info.Name);
+                assembly = (location.SearchLocal ? this.TryFind(info, location.Path, info.Path) : null)
+                           ?? (location.SearchBin ? this.TryFind(info, location.Path, "bin", info.Path) : null)
+                           ?? (location.SearchBinDebug ? this.TryFind(info, location.Path, "bin", "debug", info.Path) : null)
+                           ?? (location.SearchBinRelease ? this.TryFind(info, location.Path, "bin", "release", info.Path) : null);
                 if (assembly != null)
                 {
                     return assembly;
@@ -51,12 +62,13 @@ namespace KY.Core
             string entryLocation = Assembly.GetEntryAssembly()?.Location;
             if (entryLocation != null && entryLocation.Contains(PackageDirectoryName))
             {
-                locations.Insert(0, FileSystem.Combine(entryLocation.Split(new[] { PackageDirectoryName }, StringSplitOptions.RemoveEmptyEntries).First(), PackageDirectoryName));
+                string path = FileSystem.Combine(entryLocation.Split(new[] { PackageDirectoryName }, StringSplitOptions.RemoveEmptyEntries).First(), PackageDirectoryName);
+                locations.Insert(0, new SearchLocation(path));
             }
             List<PossibleLocation> possibleLocations = new List<PossibleLocation>();
-            foreach (string location in locations)
+            foreach (SearchLocation location in locations.Where(x => x.SearchByVersion))
             {
-                DirectoryInfo packageDirectory = FileSystem.GetDirectoryInfo(location, info.Name);
+                DirectoryInfo packageDirectory = FileSystem.GetDirectoryInfo(location.Path, info.Name);
                 if (packageDirectory.Exists)
                 {
                     packageDirectory.GetDirectories()
@@ -64,12 +76,13 @@ namespace KY.Core
                                     .Where(x => x.Version != null)
                                     .ForEach(possibleLocations.Add);
                 }
-                FileSystem.GetDirectoryInfos(location, info.Name + "*")
+                FileSystem.GetDirectoryInfos(location.Path, info.Name + "*")
                           .Select(x => new PossibleLocation(x.FullName, this.Parse(x.Name.Remove(info.Name).Trim("."))))
                           .Where(x => x.Version != null)
                           .ForEach(possibleLocations.Add);
             }
             possibleLocations = possibleLocations.OrderByDescending(x => x.Version).ToList();
+            possibleLocations.ForEach(x => Logger.Trace($"Assembly found in: {x.Path}"));
             PossibleLocation possibleLocation = possibleLocations.FirstOrDefault(x => info.Version == null || x.Version.ToString() == info.Version.ToString())
                                                 ?? possibleLocations.FirstOrDefault(x => x.Version.ToString(3) == info.Version.ToString(3))
                                                 ?? possibleLocations.FirstOrDefault(x => x.Version.ToString(2) == info.Version.ToString(2))
@@ -77,28 +90,31 @@ namespace KY.Core
                                                 ?? possibleLocations.FirstOrDefault();
             if (possibleLocation != null)
             {
+                Logger.Trace($"Best matching version found in: {possibleLocation.Path}");
+                Logger.Trace("To specify a exact version, write assembly name like this: \"MyAssembly.dll, Version=1.2.3.0\"");
                 DirectoryInfo assemblyDirectory = FileSystem.GetDirectoryInfos(FileSystem.Combine(possibleLocation.Path, "lib"), "netstandard").OrderByDescending(x => x.Name).FirstOrDefault()
                                                   ?? FileSystem.GetDirectoryInfos(FileSystem.Combine(possibleLocation.Path, "lib")).OrderByDescending(x => x.Name).FirstOrDefault();
-                assembly = assemblyDirectory == null ? null : this.TryFind(assemblyDirectory.FullName, info.Name);
+                assembly = assemblyDirectory == null ? null : this.TryFind(info, assemblyDirectory.FullName, info.Name);
             }
             if (assembly != null)
             {
                 return assembly;
             }
-            Logger.Trace($"Assembly {info.Name} not found. Searched in: {string.Join("", locations.Select(x => $"{Environment.NewLine}  - {x}"))}");
+            Logger.Warning($"Assembly {info.Name} not found");
             return null;
         }
 
-        private Assembly TryFind(params string[] chunks)
+        private Assembly TryFind(AssemblyInfo info, params string[] chunks)
         {
-            string file = FileSystem.Combine(chunks).TrimEnd(".dll") + ".dll";
-            return FileSystem.FileExists(file) ? this.Found(file) : null;
-        }
-
-        private Assembly Found(string fullPath)
-        {
-            Logger.Trace($"Assembly found in: {fullPath}");
-            return Assembly.LoadFrom(fullPath);
+            string file = FileSystem.Combine(chunks);
+            file = info.IsExecutable ? file.TrimEnd(".exe") + ".exe" : info.IsResource ? file.TrimEnd(".resources") + ".resources" : file.TrimEnd(".dll") + ".dll";
+            if (FileSystem.FileExists(file))
+            {
+                Logger.Trace($"Assembly found in: {file}");
+                return Assembly.LoadFrom(file);
+            }
+            Logger.Trace($"Assembly searched in: {file}");
+            return null;
         }
 
         private AssemblyInfo GetAssemblyInfoFromPath(string path, Version defaultVersion)
@@ -107,7 +123,7 @@ namespace KY.Core
             Match match = regex.Match(path);
             if (match.Success)
             {
-                return new AssemblyInfo(match.Groups["name"].Value, defaultVersion);
+                return new AssemblyInfo(match.Groups["name"].Value, defaultVersion, path);
             }
             return null;
         }
@@ -135,25 +151,24 @@ namespace KY.Core
             }
         }
 
-        private List<string> CleanLocations(List<string> input)
+        private List<SearchLocation> CleanLocations(List<SearchLocation> input)
         {
-            List<string> output = new List<string>();
-            foreach (string path in input)
+            List<SearchLocation> output = new List<SearchLocation>();
+            foreach (SearchLocation location in input)
             {
-                if (path == null)
+                if (location?.Path == null)
                 {
                     continue;
                 }
-                if (FileSystem.FileExists(path))
+                if (FileSystem.FileExists(location.Path))
                 {
-                    output.Add(FileSystem.Parent(path));
+                    location.Path = FileSystem.Parent(location.Path);
+                }
+                if (string.IsNullOrEmpty(location.Path) || output.Any(x => x.Path.Equals(location.Path, StringComparison.InvariantCultureIgnoreCase)))
+                {
                     continue;
                 }
-                if (string.IsNullOrEmpty(path) || output.Contains(path))
-                {
-                    continue;
-                }
-                output.Add(path);
+                output.Add(location);
             }
             return output;
         }

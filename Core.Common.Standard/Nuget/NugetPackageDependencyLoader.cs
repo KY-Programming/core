@@ -1,22 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using KY.Core.DataAccess;
+using KY.Core.Nuget;
 
 namespace KY.Core
 {
     public static class NugetPackageDependencyLoader
     {
-        public static List<string> Locations { get; }
+        public static List<SearchLocation> Locations { get; }
 
         static NugetPackageDependencyLoader()
         {
-            Locations = new List<string>
+            Locations = new List<SearchLocation>
                         {
-                            Assembly.GetCallingAssembly().Location,
-                            Assembly.GetEntryAssembly()?.Location,
-                            FileSystem.Combine(Environment.ExpandEnvironmentVariables("%USERPROFILE%"), ".nuget\\packages"),
-                            FileSystem.Combine(Environment.ExpandEnvironmentVariables("%PROGRAMFILES%"), "dotnet\\sdk\\NuGetFallbackFolder")
+                            new SearchLocation(Environment.CurrentDirectory),
+                            new SearchLocation(Assembly.GetCallingAssembly().Location).SearchOnlyLocal(),
+                            new SearchLocation(Assembly.GetEntryAssembly()?.Location).SearchOnlyLocal(),
+                            new SearchLocation(FileSystem.Combine(Environment.ExpandEnvironmentVariables("%USERPROFILE%"), ".nuget\\packages")).SearchOnlyByVersion(),
+                            new SearchLocation(FileSystem.Combine(Environment.ExpandEnvironmentVariables("%PROGRAMFILES%"), "dotnet\\sdk\\NuGetFallbackFolder")).SearchOnlyByVersion()
                         };
         }
 
@@ -32,7 +35,9 @@ namespace KY.Core
 
         private static Assembly Resolve(object sender, ResolveEventArgs args)
         {
-            return CreateLocator().Locate(args.Name);
+            return CreateLocator()
+                   .AddLocation(0, new SearchLocation(args.RequestingAssembly?.Location).SearchOnlyLocal())
+                   .Locate(args.Name);
         }
 
         public static NugetAssemblyLocator CreateLocator()

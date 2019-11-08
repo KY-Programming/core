@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using KY.Core.Nuget;
 
 namespace KY.Core
 {
     public static class NugetPackageTypeLoader
     {
-        public static Type Get(string assemblyName, string nameSpace, string typeName, Version defaultVersion, params string[] locations)
+        public static Type Get(string assemblyName, string nameSpace, string typeName, Version defaultVersion, params SearchLocation[] locations)
         {
             if (string.IsNullOrEmpty(nameSpace))
             {
