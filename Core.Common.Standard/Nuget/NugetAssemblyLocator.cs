@@ -52,8 +52,8 @@ namespace KY.Core
             {
                 assembly = (location.SearchLocal ? this.TryFind(info, location.Path, info.Path) : null)
                            ?? (location.SearchBin ? this.TryFind(info, location.Path, "bin", info.Path) : null)
-                           ?? (location.SearchBinDebug ? this.TryFind(info, location.Path, "bin", "debug", info.Path) : null)
-                           ?? (location.SearchBinRelease ? this.TryFind(info, location.Path, "bin", "release", info.Path) : null);
+                           ?? (location.SearchBinDebug ? this.TryFindExtended(info, location.Path, "bin", "debug") : null)
+                           ?? (location.SearchBinRelease ? this.TryFindExtended(info, location.Path, "bin", "release") : null);
                 if (assembly != null)
                 {
                     return assembly;
@@ -102,6 +102,19 @@ namespace KY.Core
             }
             Logger.Warning($"Assembly {info.Name} not found");
             return null;
+        }
+
+        private Assembly TryFindExtended(AssemblyInfo info, params string[] chunks)
+        {
+            string path = FileSystem.Combine(FileSystem.Combine(chunks));
+            if (FileSystem.DirectoryExists(path))
+            {
+                DirectoryInfo[] directories = FileSystem.GetDirectoryInfos(path, "netcoreapp*");
+                return directories.Select(directory => this.TryFind(info, directory.FullName, info.Name)).FirstOrDefault();
+            }
+            List<string> list = chunks.ToList();
+            list.Add(info.Name);
+            return this.TryFind(info, list.ToArray());
         }
 
         private Assembly TryFind(AssemblyInfo info, params string[] chunks)
