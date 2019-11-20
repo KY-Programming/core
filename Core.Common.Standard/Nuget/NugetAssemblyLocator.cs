@@ -47,6 +47,10 @@ namespace KY.Core
                 return assembly;
             }
             Logger.Trace($"Try to find assembly {info.Name}-{info.Version}...");
+            if (info.Path != null && info.Path.Contains(":"))
+            {
+                return this.TryFind(info, info.Path);
+            }
             List<SearchLocation> locations = this.CleanLocations(this.Locations);
             foreach (SearchLocation location in locations)
             {
@@ -109,8 +113,9 @@ namespace KY.Core
             string path = FileSystem.Combine(FileSystem.Combine(chunks));
             if (FileSystem.DirectoryExists(path))
             {
-                DirectoryInfo[] directories = FileSystem.GetDirectoryInfos(path, "netcoreapp*");
-                return directories.Select(directory => this.TryFind(info, directory.FullName, info.Name)).FirstOrDefault();
+                DirectoryInfo[] directories = FileSystem.GetDirectoryInfos(path, "netcoreapp*").Concat(FileSystem.GetDirectoryInfos(path, "netstandard*")).ToArray();
+                return directories.Select(directory => this.TryFind(info, directory.FullName, info.Name)).FirstOrDefault()
+                       ?? this.TryFind(info, path, info.Name);
             }
             List<string> list = chunks.ToList();
             list.Add(info.Name);
