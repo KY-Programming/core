@@ -35,6 +35,8 @@ namespace KY.Core
             Type type = assembly.GetType(name);
             if (type == null)
             {
+                // ReSharper disable once ReturnValueOfPureMethodIsNotUsed : Force a ReflectionTypeLoadException if something is wrong
+                assembly.DefinedTypes.FirstOrDefault();
                 Logger.Error($"Can not load type: {name} not found in {assembly.GetName().Name}");
                 return null;
             }

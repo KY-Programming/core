@@ -160,4 +160,16 @@
   <data name="MailAdressUntrustedTopLevelDomain" xml:space="preserve">
     <value>nicht vertrauenswürdige Top-Level-Domain</value>
   </data>
+  <data name="MsBuildErrorFormat" xml:space="preserve">
+    <value>Error: {0} occurred. {1}</value>
+  </data>
+  <data name="MsBuildErrorShortFormat" xml:space="preserve">
+    <value>Error: {0}</value>
+  </data>
+  <data name="MsBuildTraceFormat" xml:space="preserve">
+    <value>{0}</value>
+  </data>
+  <data name="MsBuildWarningFormat" xml:space="preserve">
+    <value>Warning: {0}</value>
+  </data>
 </root>

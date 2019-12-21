@@ -22,7 +22,7 @@ namespace KY.Core.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    public class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace KY.Core.Properties {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("KY.Core.Properties.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace KY.Core.Properties {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace KY.Core.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Can not resolve dependency {0}.
         /// </summary>
-        internal static string CanNotResolveDependency {
+        public static string CanNotResolveDependency {
             get {
                 return ResourceManager.GetString("CanNotResolveDependency", resourceCulture);
             }
@@ -72,7 +72,7 @@ namespace KY.Core.Properties {
         /// <summary>
         ///   Looks up a localized string similar to {0:dd.MM.yyyy HH:mm:ss.fff}: {1} occurred. {2}.
         /// </summary>
-        internal static string ConsoleErrorFormat {
+        public static string ConsoleErrorFormat {
             get {
                 return ResourceManager.GetString("ConsoleErrorFormat", resourceCulture);
             }
@@ -81,7 +81,7 @@ namespace KY.Core.Properties {
         /// <summary>
         ///   Looks up a localized string similar to {0:dd.MM.yyyy HH:mm:ss.fff}: {1}.
         /// </summary>
-        internal static string ConsoleTraceFormat {
+        public static string ConsoleTraceFormat {
             get {
                 return ResourceManager.GetString("ConsoleTraceFormat", resourceCulture);
             }
@@ -90,7 +90,7 @@ namespace KY.Core.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Can not log empty exception.
         /// </summary>
-        internal static string EmptyException {
+        public static string EmptyException {
             get {
                 return ResourceManager.GetString("EmptyException", resourceCulture);
             }
@@ -99,7 +99,7 @@ namespace KY.Core.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Can not be empty.
         /// </summary>
-        internal static string ErrorCanNotBeEmpty {
+        public static string ErrorCanNotBeEmpty {
             get {
                 return ResourceManager.GetString("ErrorCanNotBeEmpty", resourceCulture);
             }
@@ -108,7 +108,7 @@ namespace KY.Core.Properties {
         /// <summary>
         ///   Looks up a localized string similar to {0}.{1:MM.dd}.log.
         /// </summary>
-        internal static string FileCustomFileName {
+        public static string FileCustomFileName {
             get {
                 return ResourceManager.GetString("FileCustomFileName", resourceCulture);
             }
@@ -117,7 +117,7 @@ namespace KY.Core.Properties {
         /// <summary>
         ///   Looks up a localized string similar to error.{0:MM.dd}.log.
         /// </summary>
-        internal static string FileErrorFileName {
+        public static string FileErrorFileName {
             get {
                 return ResourceManager.GetString("FileErrorFileName", resourceCulture);
             }
@@ -129,7 +129,7 @@ namespace KY.Core.Properties {
         ///{2}
         ///.
         /// </summary>
-        internal static string FileErrorFormat {
+        public static string FileErrorFormat {
             get {
                 return ResourceManager.GetString("FileErrorFormat", resourceCulture);
             }
@@ -138,7 +138,7 @@ namespace KY.Core.Properties {
         /// <summary>
         ///   Looks up a localized string similar to trace.{0:MM.dd}.log.
         /// </summary>
-        internal static string FileTraceFileName {
+        public static string FileTraceFileName {
             get {
                 return ResourceManager.GetString("FileTraceFileName", resourceCulture);
             }
@@ -148,7 +148,7 @@ namespace KY.Core.Properties {
         ///   Looks up a localized string similar to {0:dd.MM.yyyy HH:mm:ss.fff}: {2}
         ///.
         /// </summary>
-        internal static string FileTraceFormat {
+        public static string FileTraceFormat {
             get {
                 return ResourceManager.GetString("FileTraceFormat", resourceCulture);
             }
@@ -157,7 +157,7 @@ namespace KY.Core.Properties {
         /// <summary>
         ///   Looks up a localized string similar to {0}-Exception. Logging failed.\n\n{1}.
         /// </summary>
-        internal static string LoggingFailedMessage {
+        public static string LoggingFailedMessage {
             get {
                 return ResourceManager.GetString("LoggingFailedMessage", resourceCulture);
             }
@@ -166,7 +166,7 @@ namespace KY.Core.Properties {
         /// <summary>
         ///   Looks up a localized string similar to ungültige Domain. War {0} gemeint?.
         /// </summary>
-        internal static string MailAdressInvalidDomain {
+        public static string MailAdressInvalidDomain {
             get {
                 return ResourceManager.GetString("MailAdressInvalidDomain", resourceCulture);
             }
@@ -175,9 +175,45 @@ namespace KY.Core.Properties {
         /// <summary>
         ///   Looks up a localized string similar to nicht vertrauenswürdige Top-Level-Domain.
         /// </summary>
-        internal static string MailAdressUntrustedTopLevelDomain {
+        public static string MailAdressUntrustedTopLevelDomain {
             get {
                 return ResourceManager.GetString("MailAdressUntrustedTopLevelDomain", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error: {0} occurred. {1}.
+        /// </summary>
+        public static string MsBuildErrorFormat {
+            get {
+                return ResourceManager.GetString("MsBuildErrorFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error: {0}.
+        /// </summary>
+        public static string MsBuildErrorShortFormat {
+            get {
+                return ResourceManager.GetString("MsBuildErrorShortFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}.
+        /// </summary>
+        public static string MsBuildTraceFormat {
+            get {
+                return ResourceManager.GetString("MsBuildTraceFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning: {0}.
+        /// </summary>
+        public static string MsBuildWarningFormat {
+            get {
+                return ResourceManager.GetString("MsBuildWarningFormat", resourceCulture);
             }
         }
     }

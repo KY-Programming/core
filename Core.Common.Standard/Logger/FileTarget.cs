@@ -20,14 +20,14 @@ namespace KY.Core
         {
             if (entry.Type == LogType.Error)
             {
-                string formatedError = string.Format(CultureInfo.InvariantCulture, Resources.FileErrorFormat, entry.Timestamp, entry.CustomType, entry.Message);
+                string formattedError = string.Format(CultureInfo.InvariantCulture, Resources.FileErrorFormat, entry.Timestamp, entry.CustomType, entry.Message);
                 string errorFileName = FileSystem.Combine(this.Path, string.Format(CultureInfo.InvariantCulture, Resources.FileErrorFileName, entry.Timestamp));
-                this.WriteFile(errorFileName, formatedError);
+                this.WriteFile(errorFileName, formattedError);
             }
 
-            string formatedMessage = string.Format(CultureInfo.InvariantCulture, Resources.FileTraceFormat, entry.Timestamp, entry.CustomType, entry.Message);
+            string formattedMessage = string.Format(CultureInfo.InvariantCulture, Resources.FileTraceFormat, entry.Timestamp, entry.CustomType, entry.Message);
             string fileName = FileSystem.Combine(this.Path, string.Format(CultureInfo.InvariantCulture, Resources.FileTraceFileName, entry.Timestamp));
-            this.WriteFile(fileName, formatedMessage);
+            this.WriteFile(fileName, formattedMessage);
         }
 
         private void WriteFile(string fileName, string text)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace KY.Core
@@ -15,12 +16,14 @@ namespace KY.Core
         public static LogTargets WarningTargets { get; }
         public static LogTargets ErrorTargets { get; }
         public static AllLogTargets AllTargets { get; }
+        public static Dictionary<Type, IExceptionFormatter> ExceptionFormatters { get; }
 
         public static ConsoleTarget Console { get; }
         public static FileTarget File { get; }
         public static EventLogTarget EventLog { get; set; }
         public static EventTarget Event { get; }
         public static VisualStudioOutputTarget VisualStudioOutput { get; }
+        public static MsBuildOutputTarget MsBuildOutput { get; }
 
         public static LoggerExtension Extension { get; }
         public static string Source { get; set; }
@@ -31,6 +34,7 @@ namespace KY.Core
             File = new FileTarget();
             Event = new EventTarget();
             VisualStudioOutput = new VisualStudioOutputTarget();
+            MsBuildOutput = new MsBuildOutputTarget();
             TraceTargets = new LogTargets();
             WarningTargets = new LogTargets();
             ErrorTargets = new LogTargets();
@@ -39,6 +43,8 @@ namespace KY.Core
             AllTargets.Add(File);
             AllTargets.Add(Event);
             Extension = new LoggerExtension();
+            ExceptionFormatters = new Dictionary<Type, IExceptionFormatter>();
+            ExceptionFormatters[typeof(Exception)] = new ExceptionFormatter();
         }
 
         public static void Trace(string message)

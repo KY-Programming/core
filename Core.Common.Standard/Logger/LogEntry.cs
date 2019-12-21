@@ -38,7 +38,7 @@ namespace KY.Core
         {
             if (exception == null)
                 return Error(Resources.EmptyException);
-            return new LogEntry(LogType.Error, DateTime.Now, Format(exception), customType: exception.GetType().ToString());
+            return new LogEntry(LogType.Error, DateTime.Now, Logger.Extension.Format(exception), customType: exception.GetType().ToString());
         }
 
         public static LogEntry Error(string message, string customType = null, string source = null)
@@ -50,21 +50,6 @@ namespace KY.Core
         {
             this.Shortable = false;
             return this;
-        }
-        
-        private static string Format(Exception exception)
-        {
-            StringBuilder builder = new StringBuilder();
-            builder.AppendLine(exception.Message);
-            builder.AppendLine(exception.StackTrace);
-
-            if (exception.InnerException != null)
-            {
-                builder.AppendLine("   === INNER EXCEPTION ===");
-                builder.AppendLine("   " + Format(exception.InnerException));
-            }
-
-            return builder.ToString();
         }
     }
 }

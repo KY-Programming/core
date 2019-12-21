@@ -40,7 +40,7 @@ namespace KY.Core
 
                 Console.WriteLine(formattedMessage.PadRight(Console.WindowWidth - 1));
             }
-            catch (IOException exception)
+            catch (IOException)
             {
                 this.IsConsoleAvailable = false;
                 Logger.Warning("Console output is not available");
