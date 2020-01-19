@@ -155,13 +155,41 @@ namespace KY.Core
         }
 
         [DebuggerHidden]
+        public static IList<T> AssertContains<T>(this IList<T> collection, T item, string argumentName = "", string message = DefaultMessage)
+        {
+            ((IEnumerable<T>)collection).AssertContains(item, argumentName, message);
+            return collection;
+        }
+
+        [DebuggerHidden]
+        public static List<T> AssertContains<T>(this List<T> collection, T item, string argumentName = "", string message = DefaultMessage)
+        {
+            ((IEnumerable<T>)collection).AssertContains(item, argumentName, message);
+            return collection;
+        }
+
+        [DebuggerHidden]
         public static IEnumerable<T> AssertIsNotNullOrEmpty<T>(this IEnumerable<T> collection, string argumentName = "", string message = DefaultMessage)
         {
             collection.AssertIsNotNull(argumentName);
-            if (collection.Any())
+            if (!collection.Any())
             {
                 throw new InvalidOperationException(message == DefaultMessage ? argumentName + " collection have to contain any child" : message);
             }
+            return collection;
+        }
+
+        [DebuggerHidden]
+        public static IList<T> AssertIsNotNullOrEmpty<T>(this IList<T> collection, string argumentName = "", string message = DefaultMessage)
+        {
+            ((IEnumerable<T>)collection).AssertIsNotNullOrEmpty(argumentName, message);
+            return collection;
+        }
+
+        [DebuggerHidden]
+        public static List<T> AssertIsNotNullOrEmpty<T>(this List<T> collection, string argumentName = "", string message = DefaultMessage)
+        {
+            ((IEnumerable<T>)collection).AssertIsNotNullOrEmpty(argumentName, message);
             return collection;
         }
 
