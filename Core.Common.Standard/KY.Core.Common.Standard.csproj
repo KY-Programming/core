@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>KY.Core</RootNamespace>
     <AssemblyName>KY.Core.Common</AssemblyName>
-    <Version>4.9.0</Version>
+    <Version>4.10.0</Version>
     <Authors>KY-Programming</Authors>
     <Company>KY-Programmingp</Company>
     <Product>KY.Core</Product>
@@ -17,33 +17,6 @@ Contains Dependency Injection, Module Loader and some helper classes</Descriptio
     <RepositoryUrl>https://github.com/KY-Programming/core</RepositoryUrl>
     <PackageTags>KY Core Dependency Injection DI</PackageTags>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="Revision\**" />
-    <Compile Remove="Sync\**" />
-    <Compile Remove="Validation\**" />
-    <EmbeddedResource Remove="Revision\**" />
-    <EmbeddedResource Remove="Sync\**" />
-    <EmbeddedResource Remove="Validation\**" />
-    <None Remove="Revision\**" />
-    <None Remove="Sync\**" />
-    <None Remove="Validation\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="BindingProvider.cs" />
-    <Compile Remove="CallbackFacade.cs" />
-    <Compile Remove="ChannelFacade.cs" />
-    <Compile Remove="ClientFacade.cs" />
-    <Compile Remove="Extension\CommunicationObjectExtension.cs" />
-    <Compile Remove="Extension\SqlDataReaderExtension.cs" />
-    <Compile Remove="Properties\AssemblyInfo.cs" />
-    <Compile Remove="RuleConverter.cs" />
-    <Compile Remove="ServiceFactoryBase.cs" />
-    <Compile Remove="SettingsService.cs" />
-    <Compile Remove="UniqueDebugItem.cs" />
-    <Compile Remove="WebHelper.cs" />
-  </ItemGroup>
 
   <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">

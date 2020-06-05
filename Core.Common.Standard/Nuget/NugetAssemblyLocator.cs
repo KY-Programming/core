@@ -81,7 +81,7 @@ namespace KY.Core
                                     .ForEach(possibleLocations.Add);
                 }
                 FileSystem.GetDirectoryInfos(location.Path, info.Name + "*")
-                          .Select(x => new PossibleLocation(x.FullName, this.Parse(x.Name.Remove(info.Name).Trim("."))))
+                          .Select(x => new PossibleLocation(x.FullName, this.Parse(Regex.Replace(x.Name, Regex.Escape(info.Name), string.Empty, RegexOptions.IgnoreCase).Trim("."))))
                           .Where(x => x.Version != null)
                           .ForEach(possibleLocations.Add);
             }
@@ -96,12 +96,16 @@ namespace KY.Core
             {
                 Logger.Trace($"Best matching version found in: {possibleLocation.Path}");
                 Logger.Trace("To specify a exact version, write assembly name like this: \"MyAssembly.dll, Version=1.2.3.0\"");
-                DirectoryInfo assemblyDirectory = FileSystem.GetDirectoryInfos(FileSystem.Combine(possibleLocation.Path, "lib"), "netstandard").OrderByDescending(x => x.Name).FirstOrDefault()
+                DirectoryInfo assemblyDirectory = FileSystem.GetDirectoryInfos(FileSystem.Combine(possibleLocation.Path, "lib"), "netstandard*").OrderByDescending(x => x.Name).FirstOrDefault()
+                                                  ?? FileSystem.GetDirectoryInfos(FileSystem.Combine(possibleLocation.Path, "lib"), "net4*").OrderByDescending(x => x.Name).FirstOrDefault()
+                                                  ?? FileSystem.GetDirectoryInfos(FileSystem.Combine(possibleLocation.Path, "lib"), "net5*").OrderByDescending(x => x.Name).FirstOrDefault()
+                                                  ?? FileSystem.GetDirectoryInfos(FileSystem.Combine(possibleLocation.Path, "lib"), "netcore*").OrderByDescending(x => x.Name).FirstOrDefault()
                                                   ?? FileSystem.GetDirectoryInfos(FileSystem.Combine(possibleLocation.Path, "lib")).OrderByDescending(x => x.Name).FirstOrDefault();
                 assembly = assemblyDirectory == null ? null : this.TryFind(info, assemblyDirectory.FullName, info.Name);
-            }
-            if (assembly != null)
-            {
+                if (assembly == null)
+                {
+                    Logger.Warning($"Assembly {info.Name} could not be loaded. Try to specify full or relative path");
+                }
                 return assembly;
             }
             Logger.Warning($"Assembly {info.Name} not found");
@@ -159,6 +163,10 @@ namespace KY.Core
 
         private Version Parse(string version)
         {
+            if (string.IsNullOrEmpty(version))
+            {
+                return null;
+            }
             try
             {
                 return new Version(version);
