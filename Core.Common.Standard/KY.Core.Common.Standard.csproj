@@ -4,11 +4,11 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>KY.Core</RootNamespace>
     <AssemblyName>KY.Core.Common</AssemblyName>
-    <Version>4.10.0</Version>
+    <Version>4.11.0</Version>
     <Authors>KY-Programming</Authors>
     <Company>KY-Programmingp</Company>
     <Product>KY.Core</Product>
-    <Copyright>2019 - KY-Programming</Copyright>
+    <Copyright>2020 - KY-Programming</Copyright>
     <Description>KY.Core.Common for .net Standard
 Contains Dependency Injection, Module Loader and some helper classes</Description>
     <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
@@ -16,7 +16,17 @@ Contains Dependency Injection, Module Loader and some helper classes</Descriptio
     <PackageIconUrl>https://ky-programming.de/images/logos/128.png</PackageIconUrl>
     <RepositoryUrl>https://github.com/KY-Programming/core</RepositoryUrl>
     <PackageTags>KY Core Dependency Injection DI</PackageTags>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
