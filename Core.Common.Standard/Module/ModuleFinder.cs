@@ -12,9 +12,9 @@ namespace KY.Core.Module
     {
         IList<ModuleBase> Modules { get; }
 
-        void LoadFromAssemblies();
-        void LoadFrom(Assembly assembly);
-        void LoadFrom(string path);
+        List<ModuleBase> LoadFromAssemblies();
+        List<ModuleBase> LoadFrom(Assembly assembly);
+        List<ModuleBase> LoadFrom(string path, string moduleFileNameSearchPattern = default);
     }
 
     public class ModuleFinder : IModuleFinder
@@ -24,6 +24,7 @@ namespace KY.Core.Module
         private readonly List<Type> loadedModules;
 
         public IList<ModuleBase> Modules { get; }
+        public static List<string> ModuleLoadPattern { get; } = new List<string> { "*Module.dll", "*Modules.dll" };
 
         public ModuleFinder(IDependencyResolver dependencyResolver)
         {
@@ -35,22 +36,19 @@ namespace KY.Core.Module
             this.LoadFromAssemblies();
         }
 
-        public void LoadFromAssemblies()
+        public List<ModuleBase> LoadFromAssemblies()
         {
-            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            foreach (Assembly assembly in assemblies)
-            {
-                this.LoadFrom(assembly);
-            }
+            return AppDomain.CurrentDomain.GetAssemblies().SelectMany(this.LoadFrom).ToList();
         }
 
-        public void LoadFromApplicationDirectory()
+        public List<ModuleBase> LoadFromApplicationDirectory()
         {
-            this.LoadFrom(FileSystem.Parent(Assembly.GetEntryAssembly().Location));
+            return this.LoadFrom(FileSystem.Parent(Assembly.GetEntryAssembly().Location));
         }
 
-        public void LoadFrom(Assembly assembly)
+        public List<ModuleBase> LoadFrom(Assembly assembly)
         {
+            List<ModuleBase> newModules = new List<ModuleBase>();
             try
             {
                 IEnumerable<Type> types = assembly.GetTypes().Where(x => x != this.baseType && this.baseType.IsAssignableFrom(x) && !x.IsAbstract);
@@ -59,73 +57,45 @@ namespace KY.Core.Module
                     if (this.loadedModules.Contains(type))
                         continue;
 
-                    this.Modules.Add((ModuleBase)Activator.CreateInstance(type, this.dependencyResolver));
+                    ModuleBase newModule = (ModuleBase)Activator.CreateInstance(type, this.dependencyResolver);
+                    this.Modules.Add(newModule);
                     this.loadedModules.Add(type);
+                    newModules.Add(newModule);
                 }
             }
             catch
             { }
+            return newModules;
         }
 
-        public void LoadFrom(string path)
+        public List<ModuleBase> LoadFrom(string path, string moduleFileNameSearchPattern = default)
         {
             DirectoryInfo directory = new DirectoryInfo(path);
             if (directory.Exists)
             {
-                IEnumerable<FileInfo> areaFileInfos = directory.GetFiles("*Module.dll").Concat(directory.GetFiles("*Modules.dll"));
-                foreach (FileInfo areaFileInfo in areaFileInfos)
-                {
-                    this.LoadSafeFromFile(areaFileInfo);
-                }
-                return;
+                IEnumerable<FileInfo> areaFileInfos = ModuleLoadPattern.Concat(moduleFileNameSearchPattern.Yield()).Where(x => x != null).SelectMany(pattern => directory.GetFiles(pattern));
+                List<string> alreadyLoadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().Select(x => Path.GetFileName(x.Location)).ToList();
+                IEnumerable<FileInfo> filesToLoad = areaFileInfos.Where(x => alreadyLoadedAssemblies.All(y => !y.Equals(x.Name, StringComparison.CurrentCultureIgnoreCase)));
+                return filesToLoad.SelectMany(this.LoadSafeFromFile).ToList();
             }
             FileInfo file = new FileInfo(path);
             if (file.Exists)
             {
-                this.LoadSafeFromFile(file);
+                return this.LoadSafeFromFile(file);
             }
+            return new List<ModuleBase>();
         }
 
-        private void LoadSafeFromFile(FileInfo file)
+        private List<ModuleBase> LoadSafeFromFile(FileInfo file)
         {
             try
             {
                 Assembly areaAssembly = Assembly.LoadFile(file.FullName);
-                this.LoadFrom(areaAssembly);
+                return this.LoadFrom(areaAssembly);
             }
             catch
             { }
+            return new List<ModuleBase>();
         }
     }
-
-    //internal static class PluginLocator
-    //{
-    //    public static IEnumerable<Type> Locate<TPlugin>(string path, string searchPattern)
-    //    {
-    //        AppDomain domain = AppDomain.CreateDomain("PluginLocator");
-    //        Type instanceType = typeof(Instance<TPlugin>);
-    //        Instance<TPlugin> instance = (Instance<TPlugin>)domain.CreateInstanceAndUnwrap(instanceType.Assembly.GetName().Name, instanceType.FullName);
-    //        IEnumerable<Type> result = instance.Locate(path, searchPattern);
-    //        AppDomain.Unload(domain);
-    //        return result;
-    //    }
-
-    //    private class Instance<TPlugin> : MarshalByRefObject
-    //    {
-    //        public IEnumerable<Type> Locate(string path, string searchPattern)
-    //        {
-    //            Type baseType = typeof(TPlugin);
-    //            string[] files = Directory.GetFiles(path, searchPattern);
-    //            List<Type> list = new List<Type>();
-    //            foreach (string file in files)
-    //            {
-    //                Assembly.LoadFrom(file)
-    //                        .GetTypes()
-    //                        .Where(baseType.IsAssignableFrom)
-    //                        .ForEach(list.Add);
-    //            }
-    //            return list;
-    //        }
-    //    }
-    //}
 }

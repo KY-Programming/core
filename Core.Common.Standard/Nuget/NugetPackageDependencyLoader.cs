@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Reflection;
 using KY.Core.DataAccess;
 using KY.Core.Nuget;
@@ -9,6 +8,8 @@ namespace KY.Core
 {
     public static class NugetPackageDependencyLoader
     {
+        private static bool isActivated;
+
         public static List<SearchLocation> Locations { get; }
 
         static NugetPackageDependencyLoader()
@@ -25,12 +26,18 @@ namespace KY.Core
 
         public static void Activate()
         {
+            if (isActivated)
+            {
+                return;
+            }
+            isActivated = true;
             AppDomain.CurrentDomain.AssemblyResolve += Resolve;
         }
 
         public static void Deactivate()
         {
             AppDomain.CurrentDomain.AssemblyResolve -= Resolve;
+            isActivated = false;
         }
 
         private static Assembly Resolve(object sender, ResolveEventArgs args)
