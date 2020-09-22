@@ -13,6 +13,9 @@ namespace KY.Core
     {
         private const string PackageDirectoryName = "\\packages\\";
 
+        public static List<string> FrameworkFolders { get; } = new List<string>(new[] { "netstandard*", "netcore*", "net5*", "net4*" });
+        public static List<string> NugetFolders { get; } = new List<string>(new[] { "lib", "ref" });
+
         public List<SearchLocation> Locations { get; }
         public bool SkipResourceAssemblies { get; set; }
         public bool SkipSystemAssemblies { get; set; }
@@ -96,17 +99,20 @@ namespace KY.Core
             {
                 Logger.Trace($"Best matching version found in: {possibleLocation.Path}");
                 Logger.Trace("To specify a exact version, write assembly name like this: \"MyAssembly.dll, Version=1.2.3.0\"");
-                DirectoryInfo assemblyDirectory = FileSystem.GetDirectoryInfos(FileSystem.Combine(possibleLocation.Path, "lib"), "netstandard*").OrderByDescending(x => x.Name).FirstOrDefault()
-                                                  ?? FileSystem.GetDirectoryInfos(FileSystem.Combine(possibleLocation.Path, "lib"), "net4*").OrderByDescending(x => x.Name).FirstOrDefault()
-                                                  ?? FileSystem.GetDirectoryInfos(FileSystem.Combine(possibleLocation.Path, "lib"), "net5*").OrderByDescending(x => x.Name).FirstOrDefault()
-                                                  ?? FileSystem.GetDirectoryInfos(FileSystem.Combine(possibleLocation.Path, "lib"), "netcore*").OrderByDescending(x => x.Name).FirstOrDefault()
-                                                  ?? FileSystem.GetDirectoryInfos(FileSystem.Combine(possibleLocation.Path, "lib")).OrderByDescending(x => x.Name).FirstOrDefault();
-                assembly = assemblyDirectory == null ? null : this.TryFind(info, assemblyDirectory.FullName, info.Name);
-                if (assembly == null)
+                foreach (string nugetFolder in NugetFolders)
                 {
-                    Logger.Warning($"Assembly {info.Name} could not be loaded. Try to specify full or relative path");
+                    foreach (string frameworkFolder in FrameworkFolders)
+                    {
+                        assembly = FileSystem.GetDirectoryInfos(FileSystem.Combine(possibleLocation.Path, nugetFolder), frameworkFolder)
+                                             .OrderByDescending(x => x.Name)
+                                             .Select(x => this.TryFind(info, x.FullName, info.Name))
+                                             .FirstOrDefault();
+                        if (assembly != null)
+                        {
+                            return assembly;
+                        }
+                    }
                 }
-                return assembly;
             }
             Logger.Warning($"Assembly {info.Name} not found");
             return null;

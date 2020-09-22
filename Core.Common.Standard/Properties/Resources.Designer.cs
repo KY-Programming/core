@@ -70,7 +70,7 @@ namespace KY.Core.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0:dd.MM.yyyy HH:mm:ss.fff}: {1} occurred. {2}.
+        ///   Looks up a localized string similar to {0:HH:mm:ss.fff}: {1} occurred. {2}.
         /// </summary>
         public static string ConsoleErrorFormat {
             get {
@@ -79,7 +79,7 @@ namespace KY.Core.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0:dd.MM.yyyy HH:mm:ss.fff}: {1}.
+        ///   Looks up a localized string similar to {0:HH:mm:ss.fff}: {1}.
         /// </summary>
         public static string ConsoleTraceFormat {
             get {

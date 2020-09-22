@@ -121,10 +121,10 @@
     <value>Can not resolve dependency {0}</value>
   </data>
   <data name="ConsoleErrorFormat" xml:space="preserve">
-    <value>{0:dd.MM.yyyy HH:mm:ss.fff}: {1} occurred. {2}</value>
+    <value>{0:HH:mm:ss.fff}: {1} occurred. {2}</value>
   </data>
   <data name="ConsoleTraceFormat" xml:space="preserve">
-    <value>{0:dd.MM.yyyy HH:mm:ss.fff}: {1}</value>
+    <value>{0:HH:mm:ss.fff}: {1}</value>
   </data>
   <data name="EmptyException" xml:space="preserve">
     <value>Can not log empty exception</value>
