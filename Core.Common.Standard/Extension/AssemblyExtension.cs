@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Versioning;
 
 namespace KY.Core.Extension
 {
@@ -34,6 +35,12 @@ namespace KY.Core.Extension
                     return reader.ReadToEnd();
                 }
             }
+        }
+
+        public static FrameworkName GetTargetFramework(this Assembly assembly)
+        {
+            TargetFrameworkAttribute frameworkAttribute = assembly.GetCustomAttribute<TargetFrameworkAttribute>();
+            return new FrameworkName(frameworkAttribute.FrameworkName);
         }
     }
 }
