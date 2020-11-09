@@ -139,7 +139,7 @@ namespace KY.Core
             if (FileSystem.FileExists(file))
             {
                 Logger.Trace($"Assembly found in: {file}");
-                return Assembly.LoadFrom(file);
+                return AssemblyHelper.LoadInSameContext(file);
             }
             Logger.Trace($"Assembly searched in: {file}");
             return null;

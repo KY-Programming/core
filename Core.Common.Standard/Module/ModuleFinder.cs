@@ -94,23 +94,7 @@ namespace KY.Core.Module
                 Assembly assembly = null;
                 if (!this.SeparateContext)
                 {
-                    Type loaderType = Type.GetType("System.Runtime.Loader.AssemblyLoadContext");
-                    if (loaderType != null)
-                    {
-                        PropertyInfo defaultProperty = loaderType.GetProperty("Default", BindingFlags.Static | BindingFlags.Public);
-                        if (defaultProperty != null && defaultProperty.CanRead)
-                        {
-                            object defaultContext = defaultProperty.GetMethod.Invoke(null, new object[0]);
-                            if (defaultContext != null)
-                            {
-                                MethodInfo loadMethod = defaultContext.GetType().GetMethod("LoadFromAssemblyPath");
-                                if (loadMethod != null)
-                                {
-                                    assembly = (Assembly)loadMethod.Invoke(defaultContext, new object[] { file.FullName });
-                                }
-                            }
-                        }
-                    }
+                    assembly = AssemblyHelper.LoadInSameContext(file.FullName);
                 }
                 assembly = assembly ?? Assembly.LoadFile(file.FullName);
                 return this.LoadFrom(assembly);
