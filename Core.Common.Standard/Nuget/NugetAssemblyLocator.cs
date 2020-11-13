@@ -16,6 +16,8 @@ namespace KY.Core
         public static List<string> FrameworkFolders { get; } = new List<string>(new[] { "netstandard*", "netcore*", "net5*", "net4*" });
         public static List<string> NugetFolders { get; } = new List<string>(new[] { "lib", "ref" });
 
+        private readonly List<string> resolvedAssemblies = new List<string>();
+
         public List<SearchLocation> Locations { get; }
         public bool SkipResourceAssemblies { get; set; }
         public bool SkipSystemAssemblies { get; set; }
@@ -51,7 +53,7 @@ namespace KY.Core
         public Assembly Locate(string search, Version defaultVersion = null, bool loadDependencies = false, bool forceSearchOnDisk = false)
         {
             AssemblyInfo info = (this.GetAssemblyInfoFromLongName(search) ?? this.GetAssemblyInfoFromPath(search, defaultVersion)) ?? new AssemblyInfo(search, defaultVersion);
-            if (this.SkipResourceAssemblies && info.IsResource || this.SkipSystemAssemblies && info.Name.StartsWith("System.") || info.Name == "netstandard")
+            if (this.SkipResourceAssemblies && info.IsResource || this.SkipSystemAssemblies && info.Name.StartsWith("System.") || info.Name == "netstandard" || info.Name == "mscorlib")
             {
                 return null;
             }
@@ -71,8 +73,6 @@ namespace KY.Core
             }
             if (!forceSearchOnDisk && info.Name.StartsWith("System."))
             {
-                try
-                {
                     assembly = AssemblyLoadContext.Default.LoadFromAssemblyName(new AssemblyName(search));
                     if (assembly != null)
                     {
@@ -82,9 +82,6 @@ namespace KY.Core
                         }
                         return assembly;
                     }
-                }
-                catch (Exception exception)
-                { }
             }
             Logger.Trace($"Try to find assembly {info}...");
             List<SearchLocation> locations = this.CleanLocations(this.Locations);
@@ -161,8 +158,18 @@ namespace KY.Core
 
         public void ResolveDependencies(Assembly assembly)
         {
+            if (this.resolvedAssemblies.Contains(assembly.GetName().Name))
+            {
+                return;
+            }
+            this.resolvedAssemblies.Add(assembly.GetName().Name);
             foreach (AssemblyName reference in assembly.GetReferencedAssemblies())
             {
+                if (this.resolvedAssemblies.Contains(reference.Name))
+                {
+                    continue;
+                }
+                this.resolvedAssemblies.Add(reference.Name);
                 this.Locate(reference.Name, true);
             }
         }

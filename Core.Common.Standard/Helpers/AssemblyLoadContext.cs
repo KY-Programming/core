@@ -37,12 +37,20 @@ namespace KY.Core
 
         public Assembly LoadFromAssemblyName(AssemblyName assemblyName)
         {
+            if (type == null)
+            {
+                return Assembly.Load(assemblyName);
+            }
             return type?.GetMethod(nameof(this.LoadFromAssemblyName), BindingFlags.Instance | BindingFlags.Public)
                        ?.Invoke(this.instance, new object[] { assemblyName }) as Assembly;
         }
 
         public Assembly LoadFromAssemblyPath(string assemblyPath)
         {
+            if (type == null)
+            {
+                return Assembly.LoadFile(assemblyPath);
+            }
             return type?.GetMethod(nameof(this.LoadFromAssemblyPath), BindingFlags.Instance | BindingFlags.Public)
                        ?.Invoke(this.instance, new object[] { assemblyPath }) as Assembly;
         }
