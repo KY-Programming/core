@@ -18,5 +18,10 @@ namespace KY.Core
             this.IsExecutable = this.Name.EndsWith(".exe") || this.Path.EndsWith(".exe");
             this.IsResource = this.Name.EndsWith(".resources") || this.Path.EndsWith(".resources");
         }
+
+        public override string ToString()
+        {
+            return $"{this.Name}{(this.Version != null ? $"-{this.Version}" : "")}";
+        }
     }
 }

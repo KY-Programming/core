@@ -94,7 +94,7 @@ namespace KY.Core.Module
                 Assembly assembly = null;
                 if (!this.SeparateContext)
                 {
-                    assembly = AssemblyHelper.LoadInSameContext(file.FullName);
+                    assembly = AssemblyLoadContext.Default?.LoadFromAssemblyPath(file.FullName);
                 }
                 assembly = assembly ?? Assembly.LoadFile(file.FullName);
                 return this.LoadFrom(assembly);

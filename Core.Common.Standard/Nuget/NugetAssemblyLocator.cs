@@ -19,6 +19,7 @@ namespace KY.Core
         public List<SearchLocation> Locations { get; }
         public bool SkipResourceAssemblies { get; set; }
         public bool SkipSystemAssemblies { get; set; }
+        public bool DoNotTryToLoadDependenciesOnError { get; set; }
 
         public NugetAssemblyLocator(IEnumerable<SearchLocation> locations)
         {
@@ -37,23 +38,55 @@ namespace KY.Core
             return this;
         }
 
-        public Assembly Locate(string search, Version defaultVersion = null)
+        public NugetAssemblyLocator AddLocation(int index, Assembly requestingAssembly)
+        {
+            return this.AddLocation(index, new SearchLocation(requestingAssembly?.Location).SearchOnlyLocal());
+        }
+
+        public Assembly Locate(string search, bool loadDependencies)
+        {
+            return this.Locate(search, null, loadDependencies);
+        }
+
+        public Assembly Locate(string search, Version defaultVersion = null, bool loadDependencies = false, bool forceSearchOnDisk = false)
         {
             AssemblyInfo info = (this.GetAssemblyInfoFromLongName(search) ?? this.GetAssemblyInfoFromPath(search, defaultVersion)) ?? new AssemblyInfo(search, defaultVersion);
-            if (this.SkipResourceAssemblies && info.IsResource || this.SkipSystemAssemblies && info.Name.StartsWith("System."))
+            if (this.SkipResourceAssemblies && info.IsResource || this.SkipSystemAssemblies && info.Name.StartsWith("System.") || info.Name == "netstandard")
             {
                 return null;
             }
             Assembly assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.GetName().Name == info.Name);
             if (assembly != null)
             {
+                if (loadDependencies)
+                {
+                    this.ResolveDependencies(assembly);
+                }
                 return assembly;
             }
-            Logger.Trace($"Try to find assembly {info.Name}-{info.Version}...");
             if (info.Path != null && info.Path.Contains(":"))
             {
+                Logger.Trace($"Try to load assembly from path {info}...");
                 return this.TryFind(info, info.Path);
             }
+            if (!forceSearchOnDisk && info.Name.StartsWith("System."))
+            {
+                try
+                {
+                    assembly = AssemblyLoadContext.Default.LoadFromAssemblyName(new AssemblyName(search));
+                    if (assembly != null)
+                    {
+                        if (loadDependencies)
+                        {
+                            this.ResolveDependencies(assembly);
+                        }
+                        return assembly;
+                    }
+                }
+                catch (Exception exception)
+                { }
+            }
+            Logger.Trace($"Try to find assembly {info}...");
             List<SearchLocation> locations = this.CleanLocations(this.Locations);
             foreach (SearchLocation location in locations)
             {
@@ -63,6 +96,10 @@ namespace KY.Core
                            ?? (location.SearchBinRelease ? this.TryFindExtended(info, location.Path, "bin", "release") : null);
                 if (assembly != null)
                 {
+                    if (loadDependencies)
+                    {
+                        this.ResolveDependencies(assembly);
+                    }
                     return assembly;
                 }
             }
@@ -109,6 +146,10 @@ namespace KY.Core
                                              .FirstOrDefault();
                         if (assembly != null)
                         {
+                            if (loadDependencies)
+                            {
+                                this.ResolveDependencies(assembly);
+                            }
                             return assembly;
                         }
                     }
@@ -116,6 +157,14 @@ namespace KY.Core
             }
             Logger.Warning($"Assembly {info.Name} not found");
             return null;
+        }
+
+        public void ResolveDependencies(Assembly assembly)
+        {
+            foreach (AssemblyName reference in assembly.GetReferencedAssemblies())
+            {
+                this.Locate(reference.Name, true);
+            }
         }
 
         private Assembly TryFindExtended(AssemblyInfo info, params string[] chunks)
@@ -139,7 +188,23 @@ namespace KY.Core
             if (FileSystem.FileExists(file))
             {
                 Logger.Trace($"Assembly found in: {file}");
-                return AssemblyHelper.LoadInSameContext(file);
+                try
+                {
+                    return AssemblyLoadContext.Default?.LoadFromAssemblyPath(file);
+                }
+                catch (TargetInvocationException)
+                {
+                    if (DoNotTryToLoadDependenciesOnError)
+                    {
+                        throw;
+                    }
+                    Logger.Trace("Could not load assembly. Trying to load dependencies first...");
+                    Assembly assembly = Assembly.LoadFile(file);
+                    this.ResolveDependencies(assembly);
+                    Logger.Trace($"All dependencies loaded. Clean up and try to load {info.Name} again...");
+                    AssemblyLoadContext.GetLoadContext(assembly)?.Unload();
+                    return AssemblyLoadContext.Default?.LoadFromAssemblyPath(file);
+                }
             }
             Logger.Trace($"Assembly searched in: {file}");
             return null;
@@ -158,11 +223,11 @@ namespace KY.Core
 
         private AssemblyInfo GetAssemblyInfoFromLongName(string name)
         {
-            Regex regex = new Regex(@"^(?<name>.+),\sVersion=(?<version>[\d.]+)(,\sCulture=(?<culture>[\w-]+),\sPublicKeyToken=(?<token>\w+))?");
+            Regex regex = new Regex(@"^(?<name>[^,]+)(,\sVersion=(?<version>[\d.]+))?(,\sCulture=(?<culture>[\w-]+))?(,\sPublicKeyToken=(?<token>\w+))?$");
             Match match = regex.Match(name);
             if (match.Success)
             {
-                return new AssemblyInfo(match.Groups["name"].Value, new Version(match.Groups["version"].Value));
+                return new AssemblyInfo(match.Groups["name"].Value, string.IsNullOrEmpty(match.Groups["version"].Value) ? null : new Version(match.Groups["version"].Value));
             }
             return null;
         }

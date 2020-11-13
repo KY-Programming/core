@@ -43,13 +43,18 @@ namespace KY.Core
         private static Assembly Resolve(object sender, ResolveEventArgs args)
         {
             return CreateLocator()
-                   .AddLocation(0, new SearchLocation(args.RequestingAssembly?.Location).SearchOnlyLocal())
-                   .Locate(args.Name);
+                   .AddLocation(0, args.RequestingAssembly)
+                   .Locate(args.Name, null, false, true);
         }
 
         public static NugetAssemblyLocator CreateLocator()
         {
             return new NugetAssemblyLocator(Locations);
+        }
+
+        public static void ResolveDependencies(Assembly assembly)
+        {
+            CreateLocator().AddLocation(0, assembly).ResolveDependencies(assembly);
         }
     }
 }

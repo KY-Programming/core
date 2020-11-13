@@ -86,5 +86,10 @@ namespace KY.Core
         {
             return string.IsNullOrEmpty(value) ? value : value[0].ToString().ToUpper() + value.Substring(1);
         }
+
+        public static string Fallback(this string value, string fallback)
+        {
+            return string.IsNullOrEmpty(value) ? fallback : value;
+        }
     }
 }

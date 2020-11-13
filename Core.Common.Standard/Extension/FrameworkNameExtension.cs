@@ -16,7 +16,7 @@ namespace KY.Core.Extension
 
         public static bool IsCore(this FrameworkName framework)
         {
-            return framework?.Identifier == ".NETCore";
+            return framework?.Identifier == ".NETCoreApp";
         }
     }
 }
