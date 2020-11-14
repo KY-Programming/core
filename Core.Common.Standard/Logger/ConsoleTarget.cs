@@ -33,12 +33,12 @@ namespace KY.Core
                     formattedMessage = string.Format(Resources.ConsoleTraceFormat, entry.Timestamp, entry.Message);
                 }
 
-                if (entry.Shortable && formattedMessage.Length >= Console.WindowWidth)
+                if (entry.Shortable && formattedMessage.Length >= Console.WindowWidth && Console.WindowWidth > 0)
                 {
                     formattedMessage = formattedMessage.Substring(0, Console.WindowWidth - 4) + "...";
                 }
 
-                Console.WriteLine(formattedMessage.PadRight(Console.WindowWidth - 1));
+                Console.WriteLine(Console.WindowWidth > 0 ? formattedMessage.PadRight(Console.WindowWidth - 1) : formattedMessage);
             }
             catch (IOException)
             {

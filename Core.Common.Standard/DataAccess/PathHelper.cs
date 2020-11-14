@@ -2,18 +2,22 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
 // ReSharper disable UseFileSystem
 
 namespace KY.Core.DataAccess
 {
-    public class PathHelper // TODO: to internal
+    public class PathHelper
     {
-        private const string CurrentSymbol = ".";
-        private const string ParentSymbol = "..";
-        private const string DriveSymbol = ":";
-        public static readonly Regex AbsolutePathRegex = new Regex(@"^(([A-z]:)|(file:\\\\)|(\\\\))");
+        private const string currentSymbol = ".";
+        private const string parentSymbol = "..";
+        private const string driveSymbol = ":";
+
+        private static readonly Regex absolutePathRegex = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                                                              ? new Regex(@"^(([A-z]:)|(file:\\\\)|(\\\\))")
+                                                              : new Regex("^/");
         public string Root { get; }
 
         public PathHelper(string root = null)
@@ -24,7 +28,7 @@ namespace KY.Core.DataAccess
 
         public bool IsAbsolute(string path)
         {
-            return AbsolutePathRegex.IsMatch(path);
+            return absolutePathRegex.IsMatch(path);
         }
 
         public string ToAbsolute(params string[] pathChunks)
@@ -47,8 +51,10 @@ namespace KY.Core.DataAccess
 
         public string Format(string path)
         {
-            path = path?.Replace('/', Path.DirectorySeparatorChar);
-            if (path != null && path.StartsWith(Path.DirectorySeparatorChar.ToString() + Path.DirectorySeparatorChar))
+            path = path?.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
+            bool isNetworkPath = path?.StartsWith(Path.DirectorySeparatorChar.ToString() + Path.DirectorySeparatorChar) ?? false;
+            bool isDrive = (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) && (path?.StartsWith(Path.DirectorySeparatorChar.ToString()) ?? false);
+            if (isNetworkPath || isDrive)
             {
                 return path.TrimEnd(Path.DirectorySeparatorChar);
             }
@@ -69,7 +75,7 @@ namespace KY.Core.DataAccess
             {
                 return pathChunks.FirstOrDefault();
             }
-            bool isDrive = safePathChunks.First().Contains(DriveSymbol);
+            bool isDrive = safePathChunks.First().Contains(driveSymbol);
             List<string> parts = new List<string>();
             foreach (string pathChunk in safePathChunks.Select(this.Format))
             {
@@ -77,16 +83,16 @@ namespace KY.Core.DataAccess
                 foreach (string chunk in chunks)
                 {
                     string last = parts.LastOrDefault();
-                    if (chunk == CurrentSymbol)
+                    if (chunk == currentSymbol)
                     {
                         if (parts.Count == 0)
                         {
                             parts.Add(chunk);
                         }
                     }
-                    else if (chunk == ParentSymbol)
+                    else if (chunk == parentSymbol)
                     {
-                        if (parts.Count == 0 || last == ParentSymbol)
+                        if (parts.Count == 0 || last == parentSymbol)
                         {
                             parts.Add(chunk);
                         }
@@ -95,7 +101,7 @@ namespace KY.Core.DataAccess
                             parts.Remove(last);
                         }
                     }
-                    else if (parts.Count == 0 ||last == ParentSymbol)
+                    else if (parts.Count == 0 ||last == parentSymbol)
                     {
                         parts.Add(chunk);
                     }
@@ -107,26 +113,6 @@ namespace KY.Core.DataAccess
             }
             return string.Join(Path.DirectorySeparatorChar.ToString(), parts);
         }
-
-        //public static string Get(string relative, string absolute)
-        //{
-        //    int goToParent = 0;
-        //    while (relative.StartsWith(@"..\"))
-        //    {
-        //        ++goToParent;
-        //        relative = relative.Substring(3);
-        //    }
-
-        //    DirectoryInfo info = new DirectoryInfo(absolute);
-        //    for (int i = 0; i < goToParent; ++i)
-        //    {
-        //        if (info.Parent == null)
-        //            break;
-
-        //        info = info.Parent;
-        //    }
-        //    return Path.Combine(info.FullName, relative);
-        //}
 
         public string Parent(string path)
         {

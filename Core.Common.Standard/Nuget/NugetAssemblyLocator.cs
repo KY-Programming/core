@@ -89,8 +89,8 @@ namespace KY.Core
             {
                 assembly = (location.SearchLocal ? this.TryFind(info, location.Path, info.Path) : null)
                            ?? (location.SearchBin ? this.TryFind(info, location.Path, "bin", info.Path) : null)
-                           ?? (location.SearchBinDebug ? this.TryFindExtended(info, location.Path, "bin", "debug") : null)
-                           ?? (location.SearchBinRelease ? this.TryFindExtended(info, location.Path, "bin", "release") : null);
+                           ?? (location.SearchBinDebug ? this.TryFindExtended(info, location.Path, "bin", "Debug") : null)
+                           ?? (location.SearchBinRelease ? this.TryFindExtended(info, location.Path, "bin", "Release") : null);
                 if (assembly != null)
                 {
                     if (loadDependencies)
@@ -179,7 +179,7 @@ namespace KY.Core
             string path = FileSystem.Combine(FileSystem.Combine(chunks));
             if (FileSystem.DirectoryExists(path))
             {
-                DirectoryInfo[] directories = FileSystem.GetDirectoryInfos(path, "netcoreapp*").Concat(FileSystem.GetDirectoryInfos(path, "netstandard*")).ToArray();
+                DirectoryInfo[] directories = FileSystem.GetDirectoryInfos(path, "net*");
                 return directories.Select(directory => this.TryFind(info, directory.FullName, info.Name)).FirstOrDefault()
                        ?? this.TryFind(info, path, info.Name);
             }
