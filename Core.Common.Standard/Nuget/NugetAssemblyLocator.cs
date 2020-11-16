@@ -66,7 +66,7 @@ namespace KY.Core
                 }
                 return assembly;
             }
-            if (info.Path != null && info.Path.Contains(":"))
+            if (info.Path != null && (info.Path.Contains(":") || FileSystem.FileExists(info.Path)))
             {
                 Logger.Trace($"Try to load assembly from path {info}...");
                 return this.TryFind(info, info.Path);

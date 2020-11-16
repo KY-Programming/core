@@ -22,7 +22,7 @@ namespace KY.Core
             string name = $"{nameSpace}.{typeName}";
             if (string.IsNullOrEmpty(assemblyName))
             {
-                return AppDomain.CurrentDomain.GetAssemblies().Select(x => x.GetType(name)).First(x => x != null);
+                return AppDomain.CurrentDomain.GetAssemblies().Select(x => x.GetType(name)).FirstOrDefault(x => x != null);
             }
             NugetAssemblyLocator locator = NugetPackageDependencyLoader.CreateLocator();
             locator.Locations.InsertRange(0, locations);
