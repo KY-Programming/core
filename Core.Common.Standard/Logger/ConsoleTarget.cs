@@ -9,6 +9,7 @@ namespace KY.Core
         public bool IsConsoleAvailable { get; private set; }
         public int StartLeft { get; private set; }
         public int StartTop { get; private set; }
+        public bool ShortenEntries { get; set; } = true;
 
         public ConsoleTarget()
         {
@@ -33,7 +34,7 @@ namespace KY.Core
                     formattedMessage = string.Format(Resources.ConsoleTraceFormat, entry.Timestamp, entry.Message);
                 }
 
-                if (entry.Shortable && formattedMessage.Length >= Console.WindowWidth && Console.WindowWidth > 0)
+                if (entry.Shortable && this.ShortenEntries && formattedMessage.Length >= Console.WindowWidth && Console.WindowWidth > 0)
                 {
                     formattedMessage = formattedMessage.Substring(0, Console.WindowWidth - 4) + "...";
                 }
