@@ -18,6 +18,7 @@ namespace KY.Core.DataAccess
         private static readonly Regex absolutePathRegex = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                                                               ? new Regex(@"^(([A-z]:)|(file:\\\\)|(\\\\))")
                                                               : new Regex("^/");
+
         public string Root { get; }
 
         public PathHelper(string root = null)
@@ -98,10 +99,10 @@ namespace KY.Core.DataAccess
                         }
                         else if (isDrive && parts.Count > 1 || !isDrive && parts.Count > 0)
                         {
-                            parts.Remove(last);
+                            parts.RemoveAt(parts.Count - 1);
                         }
                     }
-                    else if (parts.Count == 0 ||last == parentSymbol)
+                    else if (parts.Count == 0 || last == parentSymbol)
                     {
                         parts.Add(chunk);
                     }
