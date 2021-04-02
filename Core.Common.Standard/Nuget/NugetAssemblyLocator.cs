@@ -13,10 +13,10 @@ namespace KY.Core
     {
         private const string PackageDirectoryName = "\\packages\\";
 
+        private readonly List<string> resolvedAssemblies = new List<string>();
+
         public static List<string> FrameworkFolders { get; } = new List<string>(new[] { "netstandard*", "netcore*", "net5*", "net4*" });
         public static List<string> NugetFolders { get; } = new List<string>(new[] { "lib", "ref" });
-
-        private readonly List<string> resolvedAssemblies = new List<string>();
 
         public List<SearchLocation> Locations { get; }
         public bool SkipResourceAssemblies { get; set; }
@@ -53,8 +53,13 @@ namespace KY.Core
         public Assembly Locate(string search, Version defaultVersion = null, bool loadDependencies = false, bool forceSearchOnDisk = false)
         {
             AssemblyInfo info = (this.GetAssemblyInfoFromLongName(search) ?? this.GetAssemblyInfoFromPath(search, defaultVersion)) ?? new AssemblyInfo(search, defaultVersion);
-            if (this.SkipResourceAssemblies && info.IsResource || this.SkipSystemAssemblies && info.Name.StartsWith("System.") || info.Name == "netstandard" || info.Name == "mscorlib")
+            if (this.SkipResourceAssemblies && info.IsResource || info.Name == "netstandard" || info.Name == "mscorlib")
             {
+                return null;
+            }
+            if(this.SkipSystemAssemblies && info.Name.StartsWith("System."))
+            {
+                Logger.Trace($"Search for {info.Name} skipped. Set {nameof(this.SkipSystemAssemblies)} to false to disable this behaviour.");
                 return null;
             }
             Assembly assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.GetName().Name == info.Name);
@@ -73,15 +78,15 @@ namespace KY.Core
             }
             if (!forceSearchOnDisk && info.Name.StartsWith("System."))
             {
-                    assembly = AssemblyLoadContext.Default.LoadFromAssemblyName(new AssemblyName(search));
-                    if (assembly != null)
+                assembly = AssemblyLoadContext.Default.LoadFromAssemblyName(new AssemblyName(search));
+                if (assembly != null)
+                {
+                    if (loadDependencies)
                     {
-                        if (loadDependencies)
-                        {
-                            this.ResolveDependencies(assembly);
-                        }
-                        return assembly;
+                        this.ResolveDependencies(assembly);
                     }
+                    return assembly;
+                }
             }
             Logger.Trace($"Try to find assembly {info}...");
             List<SearchLocation> locations = this.CleanLocations(this.Locations);
@@ -109,21 +114,29 @@ namespace KY.Core
             List<PossibleLocation> possibleLocations = new List<PossibleLocation>();
             foreach (SearchLocation location in locations.Where(x => x.SearchByVersion))
             {
+                List<PossibleLocation> foundLocations = new List<PossibleLocation>();
                 DirectoryInfo packageDirectory = FileSystem.GetDirectoryInfo(location.Path, info.Name);
                 if (packageDirectory.Exists)
                 {
                     packageDirectory.GetDirectories()
                                     .Select(x => new PossibleLocation(x.FullName, this.Parse(x.Name)))
                                     .Where(x => x.Version != null)
-                                    .ForEach(possibleLocations.Add);
+                                    .ForEach(foundLocations.Add);
                 }
                 FileSystem.GetDirectoryInfos(location.Path, info.Name + "*")
                           .Select(x => new PossibleLocation(x.FullName, this.Parse(Regex.Replace(x.Name, Regex.Escape(info.Name), string.Empty, RegexOptions.IgnoreCase).Trim("."))))
                           .Where(x => x.Version != null)
-                          .ForEach(possibleLocations.Add);
+                          .ForEach(foundLocations.Add);
+                if (foundLocations.Count > 0)
+                {
+                    foundLocations.ForEach(x => Logger.Trace($"Assembly found in: {x.Path}"));
+                }
+                else
+                {
+                    Logger.Trace($"Assembly not found in: {location.Path}");
+                }
             }
             possibleLocations = possibleLocations.OrderByDescending(x => x.Version).ToList();
-            possibleLocations.ForEach(x => Logger.Trace($"Assembly found in: {x.Path}"));
             PossibleLocation possibleLocation = possibleLocations.FirstOrDefault(x => info.Version == null || x.Version.ToString() == info.Version.ToString())
                                                 ?? possibleLocations.FirstOrDefault(x => x.Version.ToString(3) == info.Version.ToString(3))
                                                 ?? possibleLocations.FirstOrDefault(x => x.Version.ToString(2) == info.Version.ToString(2))
@@ -201,7 +214,7 @@ namespace KY.Core
                 }
                 catch (TargetInvocationException)
                 {
-                    if (DoNotTryToLoadDependenciesOnError)
+                    if (this.DoNotTryToLoadDependenciesOnError)
                     {
                         throw;
                     }

@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using KY.Core.DataAccess;
 using KY.Core.Nuget;
@@ -27,13 +25,13 @@ namespace KY.Core
                         };
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                Locations.Add(new SearchLocation(FileSystem.Combine(Environment.ExpandEnvironmentVariables("%USERPROFILE%"), ".nuget\\packages")).SearchOnlyByVersion());
-                Locations.Add(new SearchLocation(FileSystem.Combine(Environment.ExpandEnvironmentVariables("%PROGRAMFILES%"), "dotnet\\sdk\\NuGetFallbackFolder")).SearchOnlyByVersion());
-                Locations.Add(new SearchLocation(FileSystem.Combine(Environment.ExpandEnvironmentVariables("%PROGRAMFILES%"), "dotnet\\sdk\\NuGetFallbackFolder")).SearchOnlyLocal());
+                Locations.Add(new SearchLocation(FileSystem.Combine(Environment.ExpandEnvironmentVariables("%USERPROFILE%"), ".nuget", "packages")).SearchOnlyByVersion());
+                Locations.Add(new SearchLocation(FileSystem.Combine(Environment.ExpandEnvironmentVariables("%PROGRAMFILES%"), "dotnet", "sdk", "NuGetFallbackFolder")).SearchOnlyByVersion());
+                Locations.Add(new SearchLocation(FileSystem.Combine(Environment.ExpandEnvironmentVariables("%PROGRAMFILES%"), "dotnet", "sdk", "NuGetFallbackFolder")).SearchOnlyLocal());
             }
             else
             {
-                Locations.Add(new SearchLocation(FileSystem.Combine(Environment.GetEnvironmentVariable("HOME"), ".nuget\\packages")).SearchOnlyByVersion());
+                Locations.Add(new SearchLocation(FileSystem.Combine(Environment.GetEnvironmentVariable("HOME"), ".nuget", "packages")).SearchOnlyByVersion());
             }
         }
 
