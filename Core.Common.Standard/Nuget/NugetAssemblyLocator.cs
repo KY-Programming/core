@@ -115,7 +115,7 @@ namespace KY.Core
             foreach (SearchLocation location in locations.Where(x => x.SearchByVersion))
             {
                 List<PossibleLocation> foundLocations = new List<PossibleLocation>();
-                DirectoryInfo packageDirectory = FileSystem.GetDirectoryInfo(location.Path, info.Name);
+                DirectoryInfo packageDirectory = FileSystem.GetDirectoryInfo(location.Path, info.Name.ToLowerInvariant());
                 if (packageDirectory.Exists)
                 {
                     packageDirectory.GetDirectories()
@@ -123,13 +123,14 @@ namespace KY.Core
                                     .Where(x => x.Version != null)
                                     .ForEach(foundLocations.Add);
                 }
-                FileSystem.GetDirectoryInfos(location.Path, info.Name + "*")
+                FileSystem.GetDirectoryInfos(location.Path, info.Name.ToLowerInvariant() + "*")
                           .Select(x => new PossibleLocation(x.FullName, this.Parse(Regex.Replace(x.Name, Regex.Escape(info.Name), string.Empty, RegexOptions.IgnoreCase).Trim("."))))
                           .Where(x => x.Version != null)
                           .ForEach(foundLocations.Add);
                 if (foundLocations.Count > 0)
                 {
                     foundLocations.ForEach(x => Logger.Trace($"Assembly found in: {x.Path}"));
+                    possibleLocations.AddRange(foundLocations);
                 }
                 else
                 {
@@ -226,7 +227,10 @@ namespace KY.Core
                     return AssemblyLoadContext.Default?.LoadFromAssemblyPath(file);
                 }
             }
-            Logger.Trace($"Assembly searched in: {file}");
+            else
+            {
+                Logger.Trace($"Assembly not found in: {file}");
+            }
             return null;
         }
 
