@@ -247,7 +247,7 @@ namespace KY.Core
 
         private AssemblyInfo GetAssemblyInfoFromLongName(string name)
         {
-            Regex regex = new Regex(@"^(?<name>[^,]+)(,\sVersion=(?<version>[\d.]+))?(,\sCulture=(?<culture>[\w-]+))?(,\sPublicKeyToken=(?<token>\w+))?$");
+            Regex regex = new Regex(@"^(?<name>[^,]+)(,\sVersion=(?<version>[\d.]+))?(,\sCulture=(?<culture>[\w-]+))?(,\sPublicKeyToken=(?<token>\w+))?(,\sContentType=(?<contentType>\w+))?$");
             Match match = regex.Match(name);
             if (match.Success)
             {
