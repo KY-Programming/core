@@ -10,18 +10,18 @@ namespace KY.Core.Dependency
     public class DependencyResolver : IDependencyResolver
     {
         private readonly IDependencyResolver dependencyResolver;
-        private readonly Dictionary<Type, Func<object>> dictionary;
-        private readonly Dictionary<Type, List<Func<object>>> lists;
+        private readonly Dictionary<Type, Func<DependencyResolver, object>> dictionary;
+        private readonly Dictionary<Type, List<Func<DependencyResolver, object>>> lists;
         private readonly Dictionary<Type, object> singletons;
-        private readonly Dictionary<string, Func<object>> names;
+        private readonly Dictionary<string, Func<DependencyResolver, object>> names;
 
         public DependencyResolver(IDependencyResolver dependencyResolver = null)
         {
             this.dependencyResolver = dependencyResolver;
-            this.dictionary = new Dictionary<Type, Func<object>>();
-            this.lists = new Dictionary<Type, List<Func<object>>>();
+            this.dictionary = new Dictionary<Type, Func<DependencyResolver, object>>();
+            this.lists = new Dictionary<Type, List<Func<DependencyResolver, object>>>();
             this.singletons = new Dictionary<Type, object>();
-            this.names = new Dictionary<string, Func<object>>();
+            this.names = new Dictionary<string, Func<DependencyResolver, object>>();
             this.Bind<IDependencyResolver>().To(this);
         }
 
@@ -36,10 +36,10 @@ namespace KY.Core.Dependency
             lock (this.dictionary)
             {
                 if (this.dictionary.ContainsKey(typeof(T)))
-                    return this.dictionary[typeof(T)]().CastTo<T>();
+                    return this.dictionary[typeof(T)](this).CastTo<T>();
             }
             if (this.dependencyResolver == null)
-                return default(T);
+                return default;
             return this.dependencyResolver.TryGet<T>();
         }
 
@@ -47,8 +47,8 @@ namespace KY.Core.Dependency
         public T TryGet<T>(string name)
         {
             if (this.names.ContainsKey(name))
-                return (T)this.names[name]();
-            return default(T);
+                return (T)this.names[name](this);
+            return default;
         }
 
         [DebuggerHidden]
@@ -60,12 +60,22 @@ namespace KY.Core.Dependency
         [DebuggerHidden]
         public object Get(Type type)
         {
+            return this.Get(type, null);
+        }
+
+        [DebuggerHidden]
+        public object Get(Type type, DependencyResolver resolver)
+        {
             lock (this.dictionary)
             {
                 if (this.dictionary.ContainsKey(type))
                 {
-                    return this.dictionary[type]();
+                    return this.dictionary[type](resolver ?? this);
                 }
+            }
+            if (this.dependencyResolver is DependencyResolver resolverInstance)
+            {
+                return resolverInstance.Get(type, resolver ?? this);
             }
             if (this.dependencyResolver != null)
             {
@@ -86,16 +96,16 @@ namespace KY.Core.Dependency
         public T Get<T>(string name)
         {
             if (this.names.ContainsKey(name))
-                return (T)this.names[name]();
+                return (T)this.names[name](this);
             throw new InvalidDependencyException<T>();
         }
 
-        private void Add<TBind>(Func<object> function, Type targetType = null)
+        private void Add<TBind>(Func<DependencyResolver, object> function, Type targetType = null)
         {
             lock (this.dictionary)
             {
                 Type type = typeof(TBind);
-                this.lists.AddIfNotExists(type, () => new List<Func<object>>());
+                this.lists.AddIfNotExists(type, () => new List<Func<DependencyResolver, object>>());
                 this.lists[type].Add(function);
                 if (this.lists[type].Count > 1)
                 {
@@ -105,75 +115,81 @@ namespace KY.Core.Dependency
                 {
                     this.dictionary.Add(type, function);
                     this.dictionary.AddIfNotExists(typeof(IEnumerable<TBind>), () => this.CreateFromList<TBind>);
-                    this.dictionary.AddIfNotExists(typeof(IList<TBind>), () => () => this.CreateFromList<TBind>().ToList());
-                    this.dictionary.AddIfNotExists(typeof(List<TBind>), () => () => this.CreateFromList<TBind>().ToList());
+                    this.dictionary.AddIfNotExists(typeof(IList<TBind>), () => resolver => this.CreateFromList<TBind>(resolver).ToList());
+                    this.dictionary.AddIfNotExists(typeof(List<TBind>), () => resolver => this.CreateFromList<TBind>(resolver).ToList());
                 }
                 if (type != targetType && targetType != null)
                 {
                     this.dictionary.AddIfNotExists(targetType, function);
                     this.dictionary.AddIfNotExists(typeof(IEnumerable<>).MakeGenericType(targetType), () => this.CreateFromList<TBind>);
-                    this.dictionary.AddIfNotExists(typeof(IList<>).MakeGenericType(targetType), () => () => this.CreateFromList<TBind>().ToList());
-                    this.dictionary.AddIfNotExists(typeof(List<>).MakeGenericType(targetType), () => () => this.CreateFromList<TBind>().ToList());
+                    this.dictionary.AddIfNotExists(typeof(IList<>).MakeGenericType(targetType), () => resolver => this.CreateFromList<TBind>(resolver).ToList());
+                    this.dictionary.AddIfNotExists(typeof(List<>).MakeGenericType(targetType), () => resolver => this.CreateFromList<TBind>(resolver).ToList());
                 }
             }
         }
-        
+
         [DebuggerHidden]
         public void Bind<TBind>(Func<TBind> function)
         {
-            this.Add<TBind>(() => function());
+            this.Add<TBind>(_ => function());
         }
-        
+
+        [DebuggerHidden]
+        public void Bind<TBind>(Func<IDependencyResolver, TBind> function)
+        {
+            this.Add<TBind>(resolver => function(resolver));
+        }
+
         [DebuggerHidden]
         void IDependencyResolver.Bind<TBind, TTo>()
         {
             this.Bind<TBind, TTo>();
         }
 
-        internal Func<object> Bind<TBind, TTo>() where TTo : TBind
+        internal Func<DependencyResolver, object> Bind<TBind, TTo>() where TTo : TBind
         {
             return this.Bind<TBind>(typeof(TTo));
         }
 
-        internal Func<object> Bind<TBind>(Type type)
+        internal Func<DependencyResolver, object> Bind<TBind>(Type type)
         {
-            object create() => this.Create(type);
+            object create(DependencyResolver resolver) => resolver.Create(type);
             this.Add<TBind>(create, type);
             return create;
         }
-        
+
         [DebuggerHidden]
         void IDependencyResolver.Bind<TBind, TTo>(TTo value)
         {
             this.Bind<TBind, TTo>(value);
         }
 
-        internal Func<object> Bind<TBind, TTo>(TTo value) where TTo : TBind
+        internal Func<DependencyResolver, object> Bind<TBind, TTo>(TTo value) where TTo : TBind
         {
-            object create() => value;
+            object create(DependencyResolver resolver) => value;
             this.Add<TBind>(create, typeof(TTo));
             return create;
         }
-        
+
         [DebuggerHidden]
         void IDependencyResolver.BindSingleton<TBind, TTo>()
         {
             this.BindSingleton<TBind, TTo>();
         }
 
-        internal Func<object> BindSingleton<TBind, TTo>() where TTo : TBind
+        internal Func<DependencyResolver, object> BindSingleton<TBind, TTo>() where TTo : TBind
         {
-            object create() => this.CreateSingleton<TTo>();
+            object create(DependencyResolver resolver) => resolver.CreateSingleton<TTo>();
             this.Add<TBind>(create, typeof(TTo));
             return create;
         }
-        
+
         [DebuggerHidden]
         public T Create<T>(params object[] arguments)
         {
             return this.Create(typeof(T), arguments).CastTo<T>();
         }
-        
+
         //[DebuggerHidden]
         public object Create(Type type, params object[] arguments)
         {
@@ -191,29 +207,35 @@ namespace KY.Core.Dependency
 
         private T CreateSingleton<T>()
         {
-            if (this.singletons.ContainsKey(typeof(T)))
-                return this.singletons[typeof(T)].CastTo<T>();
+            DependencyResolver current = this;
+            while (current != null)
+            {
+                if (current.singletons.ContainsKey(typeof(T)))
+                    return current.singletons[typeof(T)].CastTo<T>();
+
+                current = current.dependencyResolver as DependencyResolver;
+            }
 
             T instance = this.Create<T>();
             this.singletons.Add(typeof(T), instance);
             return instance;
         }
 
-        private IEnumerable<T> CreateFromList<T>()
+        private IEnumerable<T> CreateFromList<T>(DependencyResolver resolver)
         {
-            List<Func<object>> list = this.lists[typeof(T)];
-            foreach (Func<object> action in list)
+            List<Func<DependencyResolver, object>> list = this.lists[typeof(T)];
+            foreach (Func<DependencyResolver, object> action in list)
             {
-                yield return (T)action();
+                yield return (T)action(resolver);
             }
         }
-        
+
         [DebuggerHidden]
         public bool Contains<T>()
         {
             return this.Contains(typeof(T));
         }
-        
+
         [DebuggerHidden]
         public bool Contains(Type type)
         {
@@ -227,7 +249,7 @@ namespace KY.Core.Dependency
             }
         }
 
-        internal void Name(Func<object> function, string name)
+        internal void Name(Func<DependencyResolver, object> function, string name)
         {
             this.names[name] = function;
         }

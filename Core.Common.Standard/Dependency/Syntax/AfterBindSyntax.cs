@@ -10,9 +10,9 @@ namespace KY.Core.Dependency.Syntax
     public class AfterBindSyntax : IAfterBindSyntax
     {
         private readonly DependencyResolver resolver;
-        private readonly Func<object> function;
+        private readonly Func<DependencyResolver, object> function;
 
-        public AfterBindSyntax(DependencyResolver resolver, Func<object> function)
+        public AfterBindSyntax(DependencyResolver resolver, Func<DependencyResolver, object> function)
         {
             this.resolver = resolver;
             this.function = function;

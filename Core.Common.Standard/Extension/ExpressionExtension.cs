@@ -5,14 +5,97 @@ using System.Reflection;
 
 namespace KY.Core
 {
-    public static class PropertyExtension
+    public static class ExpressionExtension
     {
-        public static string ExtractPropertyName<T>(this Expression<T> propertyExpression)
+        public static string ExtractPropertyName<T>(this Expression<T> expression)
         {
-            if (propertyExpression == null)
+            if (expression == null)
                 return null;
 
-            return ExtractMemberExpression(propertyExpression).Member.Name;
+            return ExtractProperty(expression).Name;
+        }
+
+        public static PropertyInfo ExtractProperty<T>(this Expression<T> expression)
+        {
+            if (expression == null)
+                return null;
+
+            MemberExpression memberExpression = ExtractMemberExpression(expression);
+            var propertyInfo = memberExpression.Member as PropertyInfo;
+            if (propertyInfo == null)
+                throw new ArgumentException("The member access expression does not access a property.", nameof(expression));
+
+            if (propertyInfo.GetGetMethod(true).IsStatic)
+                throw new ArgumentException("The referenced property is a static property.", nameof(expression));
+
+            return propertyInfo;
+        }
+
+        public static string ExtractFieldName<T>(this Expression<T> expression)
+        {
+            if (expression == null)
+                return null;
+
+            return ExtractField(expression).Name;
+        }
+
+        public static FieldInfo ExtractField<T>(this Expression<T> expression)
+        {
+            if (expression == null)
+                return null;
+
+            MemberExpression memberExpression = ExtractMemberExpression(expression);
+            var fieldInfo = memberExpression.Member as FieldInfo;
+            if (fieldInfo == null)
+                throw new ArgumentException("The member access expression does not access a field.", nameof(expression));
+
+            if (fieldInfo.IsStatic)
+                throw new ArgumentException("The referenced field is a static field.", nameof(expression));
+
+            return fieldInfo;
+        }
+
+        public static MemberInfo ExtractMember<T>(this Expression<T> expression)
+        {
+            if (expression == null)
+                return null;
+
+            MemberExpression memberExpression = ExtractMemberExpression(expression);
+            var memberInfo = memberExpression.Member;
+            if (memberInfo == null)
+                throw new ArgumentException("The member access expression does not access a member.", nameof(expression));
+
+            if (memberInfo is FieldInfo fieldInfo && fieldInfo.IsStatic
+                || memberInfo is PropertyInfo propertyInfo && propertyInfo.GetGetMethod(true).IsStatic
+                || memberInfo is MethodInfo methodInfo && methodInfo.IsStatic
+                )
+                throw new ArgumentException("The referenced member is a static.", nameof(expression));
+
+            return memberInfo;
+        }
+
+        public static string ExtractMethodName<T>(this Expression<T> expression)
+        {
+            if (expression == null)
+                return null;
+
+            return ExtractMethod(expression).Name;
+        }
+
+        public static MethodInfo ExtractMethod<T>(this Expression<T> expression)
+        {
+            if (expression == null)
+                return null;
+
+            MemberExpression memberExpression = ExtractMemberExpression(expression);
+            var methodInfo = memberExpression.Member as MethodInfo;
+            if (methodInfo == null)
+                throw new ArgumentException("The member access expression does not access a method.", nameof(expression));
+
+            if (methodInfo.IsStatic)
+                throw new ArgumentException("The referenced method is a static method.", nameof(expression));
+
+            return methodInfo;
         }
 
         private static MemberExpression ExtractMemberExpression<T>(Expression<T> propertyExpression)
@@ -24,12 +107,6 @@ namespace KY.Core
             if (memberExpression == null)
                 throw new ArgumentException("The expression is not a member access expression.", "propertyExpression");
 
-            var propertyInfo = memberExpression.Member as PropertyInfo;
-            if (propertyInfo == null)
-                throw new ArgumentException("The member access expression does not access a property.", "propertyExpression");
-
-            if (propertyInfo.GetGetMethod(true).IsStatic)
-                throw new ArgumentException("The referenced property is a static property.", "propertyExpression");
             return memberExpression;
         }
 

@@ -24,13 +24,13 @@ namespace KY.Core.Dependency.Syntax
 
         public IAfterBindSyntax To<TTo>() where TTo : TBind
         {
-            Func<object> function = this.resolver.Bind<TBind, TTo>();
+            Func<DependencyResolver, object> function = this.resolver.Bind<TBind, TTo>();
             return new AfterBindSyntax(this.resolver, function);
         }
 
         public IAfterBindSyntax ToSingleton<TTo>() where TTo : TBind
         {
-            Func<object> function = this.resolver.BindSingleton<TBind, TTo>();
+            Func<DependencyResolver, object> function = this.resolver.BindSingleton<TBind, TTo>();
             return new AfterBindSyntax(this.resolver, function);
         }
 
@@ -41,13 +41,13 @@ namespace KY.Core.Dependency.Syntax
 
         public IAfterBindSyntax To(TBind value)
         {
-            Func<object> function = this.resolver.Bind<TBind, TBind>(value);
+            Func<DependencyResolver, object> function = this.resolver.Bind<TBind, TBind>(value);
             return new AfterBindSyntax(this.resolver, function);
         }
 
         public IAfterBindSyntax ToSelf()
         {
-            Func<object> function = this.resolver.Bind<TBind, TBind>();
+            Func<DependencyResolver, object> function = this.resolver.Bind<TBind, TBind>();
             return new AfterBindSyntax(this.resolver, function);
         }
 
@@ -58,7 +58,7 @@ namespace KY.Core.Dependency.Syntax
 
         public IAfterBindSyntax To(Type type)
         {
-            Func<object> function = this.resolver.Bind<TBind>(type);
+            Func<DependencyResolver, object> function = this.resolver.Bind<TBind>(type);
             return new AfterBindSyntax(this.resolver, function);
         }
     }
