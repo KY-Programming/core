@@ -49,6 +49,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DependencyResolverTests.cs" />
     <Compile Include="ObjectExtensionTests.cs" />
     <Compile Include="PathHelperTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

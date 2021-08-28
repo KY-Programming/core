@@ -105,6 +105,14 @@ namespace KY.Core.Dependency
             lock (this.dictionary)
             {
                 Type type = typeof(TBind);
+                if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    type = type.GetGenericArguments()[0];
+                    this.dictionary.AddIfNotExists(typeof(IEnumerable<>).MakeGenericType(type), function);
+                    this.dictionary.AddIfNotExists(typeof(IList<>).MakeGenericType(type), function);
+                    this.dictionary.AddIfNotExists(typeof(List<>).MakeGenericType(type), function);
+                    return;
+                }
                 this.lists.AddIfNotExists(type, () => new List<Func<DependencyResolver, object>>());
                 this.lists[type].Add(function);
                 if (this.lists[type].Count > 1)
