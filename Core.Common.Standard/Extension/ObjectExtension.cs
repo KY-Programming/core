@@ -56,7 +56,7 @@ namespace KY.Core
                 }
             }
         }
-        
+
         [DebuggerHidden]
         public static void SetFrom(this object target, object source, params string[] ignoreProperties)
         {
@@ -67,7 +67,7 @@ namespace KY.Core
             Type targetType = target.GetType();
             Type sourceType = source.GetType();
             IEnumerable<PropertyInfo> sourceProperties = sourceType.GetProperties(BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public)
-                                                         .Where(x => x.CanRead && !ignoreProperties.Contains(x.Name));
+                                                                   .Where(x => x.CanRead && !ignoreProperties.Contains(x.Name));
             foreach (PropertyInfo sourceProperty in sourceProperties)
             {
                 PropertyInfo targetProperty = targetType.GetProperty(sourceProperty.Name, /*BindingFlags.GetProperty | BindingFlags.SetProperty |*/ BindingFlags.Instance | BindingFlags.Public);
@@ -99,6 +99,59 @@ namespace KY.Core
                     {
                         targetValue.SetFrom(sourceValue);
                     }
+                }
+            }
+        }
+
+        public static T Clone<T>(this T source, params string[] ignoreProperties)
+        {
+            return Clone(source, true, ignoreProperties);
+        }
+
+        public static T Clone<T>(this T source, bool useICloneable, params string[] ignoreProperties)
+        {
+            if (useICloneable && source is ICloneable cloneable)
+            {
+                return (T)cloneable.Clone();
+            }
+            if (source == null)
+            {
+                return default;
+            }
+            T target = (T)Activator.CreateInstance(source.GetType());
+            CloneAndSet(source, target, ignoreProperties);
+            return target;
+        }
+
+        private static void CloneAndSet(object source, object target, params string[] ignoreProperties)
+        {
+            IEnumerable<PropertyInfo> properties = source.GetType().GetProperties(BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public)
+                                                         .Where(x => x.CanRead && !ignoreProperties.Contains(x.Name));
+            foreach (PropertyInfo property in properties)
+            {
+                object sourceValue = property.GetGetMethod().Invoke(source, null);
+                object targetValue = property.GetGetMethod().Invoke(target, null);
+                if (targetValue != null && sourceValue != null && !targetValue.GetType().IsPrimitive && targetValue is not string)
+                {
+                    if (targetValue is IList list)
+                    {
+                        list.Clear();
+                        if (sourceValue is IEnumerable enumerable)
+                        {
+                            foreach (object entry in enumerable)
+                            {
+                                list.Add(entry?.Clone());
+                            }
+                        }
+                    }
+                    else
+                    {
+                        CloneAndSet(sourceValue, targetValue, ignoreProperties);
+                    }
+                }
+                else if (property.CanWrite)
+                {
+                    property.GetSetMethod().Invoke(target, new[] { sourceValue?.Clone() });
                 }
             }
         }

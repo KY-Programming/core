@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>KY.Core</RootNamespace>
     <AssemblyName>KY.Core.Common</AssemblyName>
-    <Version>4.22.0</Version>
+    <Version>4.23.0</Version>
     <Authors>KY-Programming</Authors>
     <Company>KY-Programmingp</Company>
     <Product>KY.Core</Product>
@@ -19,6 +19,7 @@ Contains Dependency Injection, Module Loader and some helper classes</Descriptio
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
