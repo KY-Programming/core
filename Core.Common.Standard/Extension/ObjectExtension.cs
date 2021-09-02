@@ -92,7 +92,7 @@ namespace KY.Core
                         }
                     }
                 }
-                else if (targetProperty.CanRead && !targetProperty.PropertyType.IsValueType)
+                else if (targetProperty.CanRead && IsCloneable(targetProperty.PropertyType))
                 {
                     object targetValue = targetProperty.GetGetMethod().Invoke(target, null);
                     if (targetValue != null && sourceValue != null)
@@ -118,6 +118,10 @@ namespace KY.Core
             {
                 return default;
             }
+            if (!IsCloneable(source))
+            {
+                return source;
+            }
             T target = (T)Activator.CreateInstance(source.GetType());
             CloneAndSet(source, target, ignoreProperties);
             return target;
@@ -125,35 +129,40 @@ namespace KY.Core
 
         private static void CloneAndSet(object source, object target, params string[] ignoreProperties)
         {
+            if (target is IList list && source is IEnumerable enumerable)
+            {
+                list.Clear();
+                foreach (object entry in enumerable)
+                {
+                    list.Add(entry?.Clone());
+                }
+                return;
+            }
             IEnumerable<PropertyInfo> properties = source.GetType().GetProperties(BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public)
-                                                         .Where(x => x.CanRead && !ignoreProperties.Contains(x.Name));
+                                                         .Where(x => x.CanRead && !ignoreProperties.Contains(x.Name) && x.GetMethod.GetParameters().Length == 0);
             foreach (PropertyInfo property in properties)
             {
-                object sourceValue = property.GetGetMethod().Invoke(source, null);
-                object targetValue = property.GetGetMethod().Invoke(target, null);
-                if (targetValue != null && sourceValue != null && !targetValue.GetType().IsPrimitive && targetValue is not string)
+                object sourceValue = property.GetMethod.Invoke(source, null);
+                object targetValue = property.GetMethod.Invoke(target, null);
+                if (targetValue != null && sourceValue != null && IsCloneable(targetValue))
                 {
-                    if (targetValue is IList list)
-                    {
-                        list.Clear();
-                        if (sourceValue is IEnumerable enumerable)
-                        {
-                            foreach (object entry in enumerable)
-                            {
-                                list.Add(entry?.Clone());
-                            }
-                        }
-                    }
-                    else
-                    {
-                        CloneAndSet(sourceValue, targetValue, ignoreProperties);
-                    }
+                    CloneAndSet(sourceValue, targetValue, ignoreProperties);
                 }
                 else if (property.CanWrite)
                 {
-                    property.GetSetMethod().Invoke(target, new[] { sourceValue?.Clone() });
+                    property.SetMethod.Invoke(target, new[] { sourceValue?.Clone() });
                 }
             }
+        }
+
+        private static bool IsCloneable(Type type)
+        {
+            return !type.IsPrimitive && type != typeof(string);
+        }
+
+        private static bool IsCloneable(object obj)
+        {
+            return obj != null && IsCloneable(obj.GetType());
         }
     }
 }
