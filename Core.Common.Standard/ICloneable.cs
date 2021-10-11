@@ -2,7 +2,7 @@
 
 namespace KY.Core
 {
-    [Obsolete("Use ICloneable instead")]
+    [Obsolete("Use System.ICloneable instead")]
     public interface ICloneable<out T>
     {
         T Clone();

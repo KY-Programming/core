@@ -75,7 +75,7 @@ namespace KY.Core.Module
             if (directory.Exists)
             {
                 IEnumerable<FileInfo> areaFileInfos = ModuleLoadPattern.Concat(moduleFileNameSearchPattern.Yield()).Where(x => x != null).SelectMany(pattern => directory.GetFiles(pattern));
-                List<string> alreadyLoadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().Select(x => Path.GetFileName(x.Location)).ToList();
+                List<string> alreadyLoadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().Where(x => !x.IsDynamic).Select(x => Path.GetFileName(x.Location)).ToList();
                 IEnumerable<FileInfo> filesToLoad = areaFileInfos.Where(x => alreadyLoadedAssemblies.All(y => !y.Equals(x.Name, StringComparison.CurrentCultureIgnoreCase)));
                 return filesToLoad.SelectMany(this.LoadSafeFromFile).ToList();
             }

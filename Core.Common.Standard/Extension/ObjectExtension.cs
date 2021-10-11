@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using KY.Core.Clone;
 
 namespace KY.Core
 {
@@ -104,37 +105,68 @@ namespace KY.Core
         }
 
         public static T Clone<T>(this T source, params string[] ignoreProperties)
+            where T : class
         {
             return Clone(source, true, ignoreProperties);
         }
 
         public static T Clone<T>(this T source, bool useICloneable, params string[] ignoreProperties)
+            where T : class
         {
-            if (useICloneable && source is ICloneable cloneable)
-            {
-                return (T)cloneable.Clone();
-            }
+            return Clone(source, null, useICloneable, ignoreProperties);
+        }
+
+        private static T Clone<T>(this T source, CloneStack stack, bool useICloneable = true, params string[] ignoreProperties)
+            where T : class
+        {
             if (source == null)
             {
                 return default;
+            }
+            stack ??= CloneStack.Continue() ?? new CloneStack();
+            if (stack.Mapping.ContainsKey(source))
+            {
+                return (T)stack.Mapping[source];
+            }
+            if (useICloneable && source is ICloneable cloneable)
+            {
+                try
+                {
+                    stack.Open();
+                    stack.Mapping.Add(cloneable, null);
+                    T clone = (T)cloneable.Clone();
+                    stack.Mapping[cloneable] = clone;
+                    List<DelayedSetter> delayedSetters = stack.DelayedSetters.Where(x => x.Source == source).ToList();
+                    foreach (DelayedSetter setter in delayedSetters)
+                    {
+                        setter.Setter.Invoke(setter.Target, new object[] { clone });
+                        stack.DelayedSetters.Remove(setter);
+                    }
+                    return clone;
+                }
+                finally
+                {
+                    stack.Close();
+                }
             }
             if (!IsCloneable(source))
             {
                 return source;
             }
             T target = (T)Activator.CreateInstance(source.GetType());
-            CloneAndSet(source, target, ignoreProperties);
+            stack.Mapping.Add(source, target);
+            CloneAndSet(source, target, stack, useICloneable, ignoreProperties);
             return target;
         }
 
-        private static void CloneAndSet(object source, object target, params string[] ignoreProperties)
+        private static void CloneAndSet(object source, object target, CloneStack stack, bool useICloneable = true, params string[] ignoreProperties)
         {
             if (target is IList list && source is IEnumerable enumerable)
             {
                 list.Clear();
                 foreach (object entry in enumerable)
                 {
-                    list.Add(entry?.Clone());
+                    list.Add(entry?.Clone(stack));
                 }
                 return;
             }
@@ -144,13 +176,36 @@ namespace KY.Core
             {
                 object sourceValue = property.GetMethod.Invoke(source, null);
                 object targetValue = property.GetMethod.Invoke(target, null);
-                if (targetValue != null && sourceValue != null && IsCloneable(targetValue))
+                bool isMarkedAsNotCloneable = property.GetCustomAttribute<NotCloneableAttribute>() != null;
+                bool isAlreadyCloned = sourceValue != null && stack.Mapping.ContainsKey(sourceValue);
+                if (isMarkedAsNotCloneable && property.CanWrite)
                 {
-                    CloneAndSet(sourceValue, targetValue, ignoreProperties);
+                    property.SetMethod.Invoke(target, new[] { sourceValue });
+                }
+                else if (isMarkedAsNotCloneable && targetValue != null && sourceValue != null)
+                {
+                    targetValue.SetFrom(sourceValue);
+                }
+                else if (isAlreadyCloned && property.CanWrite)
+                {
+                    property.SetMethod.Invoke(target, new[] { stack.Mapping[sourceValue] });
+                }
+                else if (targetValue != null && sourceValue != null && IsCloneable(targetValue))
+                {
+                    stack.Mapping.AddIfNotExists(sourceValue, targetValue);
+                    CloneAndSet(sourceValue, targetValue, stack, useICloneable, ignoreProperties);
                 }
                 else if (property.CanWrite)
                 {
-                    property.SetMethod.Invoke(target, new[] { sourceValue?.Clone() });
+                    object clone = sourceValue?.Clone(stack, useICloneable, ignoreProperties);
+                    if (clone == null)
+                    {
+                        stack.DelayedSetters.Add(new DelayedSetter(property.SetMethod, sourceValue, target));
+                    }
+                    else
+                    {
+                        property.SetMethod.Invoke(target, new[] { clone });
+                    }
                 }
             }
         }

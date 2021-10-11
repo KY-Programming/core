@@ -20,6 +20,7 @@
     <TestProjectType>UnitTest</TestProjectType>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -49,10 +50,13 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AnonymizerTests.cs" />
+    <Compile Include="AssemblyLoadTests.cs" />
     <Compile Include="DependencyResolverTests.cs" />
     <Compile Include="ObjectExtensionTests.cs" />
     <Compile Include="PathHelperTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SemanticVersionTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

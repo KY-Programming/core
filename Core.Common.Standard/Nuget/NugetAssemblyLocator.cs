@@ -57,7 +57,7 @@ namespace KY.Core
             {
                 return null;
             }
-            if(this.SkipSystemAssemblies && info.Name.StartsWith("System."))
+            if (this.SkipSystemAssemblies && info.Name.StartsWith("System."))
             {
                 Logger.Trace($"Search for {info.Name} skipped. Set {nameof(this.SkipSystemAssemblies)} to false to disable this behaviour.");
                 return null;
@@ -256,7 +256,7 @@ namespace KY.Core
             return null;
         }
 
-        private Version Parse(string version)
+        private SemanticVersion Parse(string version)
         {
             if (string.IsNullOrEmpty(version))
             {
@@ -264,7 +264,7 @@ namespace KY.Core
             }
             try
             {
-                return new Version(version);
+                return new SemanticVersion(version);
             }
             catch
             {

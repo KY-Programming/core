@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace KY.Core
 {
@@ -72,7 +73,7 @@ namespace KY.Core
             }
             return value.Substring(0, length);
         }
-        
+
         public static string FirstCharToLower(this string value)
         {
             if (!string.IsNullOrEmpty(value) && value != value.ToUpper())
@@ -90,6 +91,36 @@ namespace KY.Core
         public static string Fallback(this string value, string fallback)
         {
             return string.IsNullOrEmpty(value) ? fallback : value;
+        }
+
+        public static string PadLeft(this string value, int totalWidth, string text = " ", bool exact = false)
+        {
+            if (value == null || text == null || value.Length >= totalWidth)
+            {
+                return value;
+            }
+            StringBuilder builder = new();
+            while (builder.Length + value.Length < totalWidth)
+            {
+                builder.Append(text);
+            }
+            builder.Append(value);
+            return exact ? builder.ToString().Substring(0, totalWidth) : builder.ToString();
+        }
+
+        public static string PadRight(this string value, int totalWidth, string text = " ", bool exact = false)
+        {
+            if (value == null || text == null || value.Length >= totalWidth)
+            {
+                return value;
+            }
+            StringBuilder builder = new();
+            builder.Append(value);
+            while (builder.Length < totalWidth)
+            {
+                builder.Append(text);
+            }
+            return exact ? builder.ToString().Substring(0, totalWidth) : builder.ToString();
         }
     }
 }
