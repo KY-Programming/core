@@ -19,10 +19,10 @@ namespace KY.Core
 
         public bool IsPreVersion => !string.IsNullOrEmpty(this.MajorPre) || !string.IsNullOrEmpty(this.MinorPre) || !string.IsNullOrEmpty(this.BuildPre) || !string.IsNullOrEmpty(this.RevisionPre);
 
-        public SemanticVersion(int major, int minor, int build = -1, int revision = -1)
+        public SemanticVersion(int major, int minor = -1, int build = -1, int revision = -1)
         {
-            this.Major = major.AssertIsPositive();
-            this.Minor = minor.AssertIsPositive();
+            this.Major = major.AssertIsNotNegative();
+            this.Minor = minor;
             this.Build = build;
             this.Revision = revision;
         }
@@ -31,9 +31,9 @@ namespace KY.Core
         {
             Match match = regex.Match(version);
             match.AssertIsNotNull(message: "Can not parse SemanticVersion");
-            this.Major = int.Parse(match.Groups["major"].Value);
+            this.Major = match.Groups["major"].Length == 0 ? 0 : int.Parse(match.Groups["major"].Value);
             this.MajorPre = match.Groups["majorPre"].Value;
-            this.Minor = int.Parse(match.Groups["minor"].Value);
+            this.Minor = match.Groups["minor"].Length == 0 ? -1 : int.Parse(match.Groups["minor"].Value);
             this.MinorPre = match.Groups["minorPre"].Value;
             this.Build = match.Groups["build"].Length == 0 ? -1 : int.Parse(match.Groups["build"].Value);
             this.BuildPre = match.Groups["buildPre"].Value;
@@ -66,7 +66,7 @@ namespace KY.Core
         {
             if (this.Major != other.Major)
                 return this.Major > other.Major ? 1 : -1;
-            if (this.MajorPre !=  string.Empty)
+            if (this.MajorPre != string.Empty)
                 return -1;
             if (this.Minor != other.Minor)
                 return this.Minor > other.Minor ? 1 : -1;
@@ -106,7 +106,7 @@ namespace KY.Core
             {
                 parts.Add(this.MajorPre == string.Empty ? this.Major.ToString() : $"{this.Major}{this.MajorPre}");
             }
-            if (fieldCount >= 2)
+            if (fieldCount >= 2 && this.Minor >= 0)
             {
                 parts.Add(this.MinorPre == string.Empty ? this.Minor.ToString() : $"{this.Minor}{this.MinorPre}");
             }

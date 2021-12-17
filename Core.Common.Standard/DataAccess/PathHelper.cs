@@ -29,7 +29,7 @@ namespace KY.Core.DataAccess
 
         public bool IsAbsolute(string path)
         {
-            return absolutePathRegex.IsMatch(path);
+            return !string.IsNullOrEmpty(path) && absolutePathRegex.IsMatch(path);
         }
 
         public string ToAbsolute(params string[] pathChunks)
@@ -71,6 +71,10 @@ namespace KY.Core.DataAccess
 
         public string Combine(params string[] pathChunks)
         {
+            if (pathChunks.Skip(1).Any(this.IsAbsolute))
+            {
+                throw new InvalidOperationException("Can not combine two absolut paths. Only the first path segment in Combine(...) method can be absolute.");
+            }
             List<string> safePathChunks = pathChunks.Where(x => !string.IsNullOrEmpty(x)).ToList();
             if (safePathChunks.Count == 0)
             {
@@ -122,8 +126,8 @@ namespace KY.Core.DataAccess
 
         public string RelativeTo(string path, string to)
         {
-            string[] pathChunks = this.Format(path)?.Split(Path.DirectorySeparatorChar) ?? new string[0];
-            string[] toChunks = this.Format(to)?.Split(Path.DirectorySeparatorChar) ?? new string[0];
+            string[] pathChunks = this.ToAbsolute(path).Split(Path.DirectorySeparatorChar);
+            string[] toChunks = this.ToAbsolute(to).Split(Path.DirectorySeparatorChar);
             int sameChunks = 0;
             for (int index = 0; index < pathChunks.Length; index++)
             {

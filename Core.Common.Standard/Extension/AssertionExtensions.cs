@@ -14,6 +14,9 @@ namespace KY.Core
     {
         private const string DefaultMessage = "[Message will be replaced in method body]";
 
+        /// <summary>
+        /// Assert the value is > 0
+        /// </summary>
         [DebuggerHidden]
         public static double AssertIsPositive(this double self, string argumentName = "", string message = "Has to be positive")
         {
@@ -21,16 +24,21 @@ namespace KY.Core
             {
                 throw new ArgumentOutOfRangeException(argumentName, self, message);
             }
-
             return self;
         }
 
+        /// <summary>
+        /// Assert the value is greater than 0
+        /// </summary>
         [DebuggerHidden]
         public static double AssertIsPositive(this double? self, string argumentName = "", string message = "Has to be positive")
         {
             return self.AssertIsNotNull(argumentName, message).AssertIsPositive(argumentName, message);
         }
 
+        /// <summary>
+        /// Assert the value is null or greater than 0
+        /// </summary>
         [DebuggerHidden]
         public static double? AssertIsNullOrPositive(this double? self, string argumentName = "", string message = "Has to be null or positive")
         {
@@ -38,6 +46,9 @@ namespace KY.Core
             return self;
         }
 
+        /// <summary>
+        /// Assert the value is 0 or greater
+        /// </summary>
         [DebuggerHidden]
         public static int AssertIsNotNegative(this int self, string argumentName = "", string message = "Has to be positive or 0")
         {
@@ -48,6 +59,9 @@ namespace KY.Core
             return self;
         }
 
+        /// <summary>
+        /// Assert the value is greater than 0
+        /// </summary>
         [DebuggerHidden]
         public static int AssertIsPositive(this int self, string argumentName = "", string message = "Has to be positive")
         {
@@ -58,6 +72,9 @@ namespace KY.Core
             return self;
         }
 
+        /// <summary>
+        /// Assert the value is 0 or greater
+        /// </summary>
         [DebuggerHidden]
         public static long AssertIsNotNegative(this long self, string argumentName = "", string message = "Has to be positive or 0")
         {
@@ -68,6 +85,9 @@ namespace KY.Core
             return self;
         }
 
+        /// <summary>
+        /// Assert the value is greater than 0
+        /// </summary>
         [DebuggerHidden]
         public static long AssertIsPositive(this long self, string argumentName = "", string message = "Has to be positive")
         {
@@ -78,12 +98,18 @@ namespace KY.Core
             return self;
         }
 
+        /// <summary>
+        /// Assert the value is greater than 0
+        /// </summary>
         [DebuggerHidden]
         public static long AssertIsPositive(this long? self, string argumentName = "", string message = "Has to be positive")
         {
             return self.AssertIsNotNull(argumentName, message).AssertIsPositive(argumentName, message);
         }
 
+        /// <summary>
+        /// Assert the value is null or greater than 0
+        /// </summary>
         [DebuggerHidden]
         public static long? AssertIsNullOrPositive(this long? self, string argumentName = "", string message = "Has to be null or positive")
         {
@@ -91,6 +117,9 @@ namespace KY.Core
             return self;
         }
 
+        /// <summary>
+        /// Assert the string length is shorter than the given value
+        /// </summary>
         [DebuggerHidden]
         public static string AssertIsNotLongerThan(this string reference, int maxLength, string parameterName = null, string message = DefaultMessage)
         {
@@ -101,6 +130,9 @@ namespace KY.Core
             return reference;
         }
 
+        /// <summary>
+        /// Assert the string is null or empty
+        /// </summary>
         [DebuggerHidden]
         public static string AssertIsNotNullOrEmpty(this string reference, string parameterName = null, string message = "Cannot be null or empty")
         {
@@ -111,6 +143,9 @@ namespace KY.Core
             return reference;
         }
 
+        /// <summary>
+        /// Assert the string is not null
+        /// </summary>
         [DebuggerHidden]
         public static T AssertIsNotNull<T>(this T reference, string parameterName = null, string message = "Cannot be null")
             where T : class
@@ -122,6 +157,9 @@ namespace KY.Core
             return reference;
         }
 
+        /// <summary>
+        /// Assert the value is not null
+        /// </summary>
         [DebuggerHidden]
         public static T AssertIsNotNull<T>(this T? reference, string parameterName = null, string message = "Cannot be null")
             where T : struct
@@ -133,6 +171,9 @@ namespace KY.Core
             return reference.Value;
         }
 
+        /// <summary>
+        /// Assert all elements are greater than 0
+        /// </summary>
         [DebuggerHidden]
         public static IEnumerable<long> AssertAllElementsArePositive(this IEnumerable<long> self, string parameterName = null, string message = "All Elements have to be positive")
         {
@@ -143,6 +184,9 @@ namespace KY.Core
             return self;
         }
 
+        /// <summary>
+        /// Assert the given value is included at least once
+        /// </summary>
         [DebuggerHidden]
         public static IEnumerable<T> AssertContains<T>(this IEnumerable<T> collection, T item, string argumentName = "", string message = DefaultMessage)
         {
@@ -154,6 +198,9 @@ namespace KY.Core
             return collection;
         }
 
+        /// <summary>
+        /// Assert the given value is included at least once
+        /// </summary>
         [DebuggerHidden]
         public static IList<T> AssertContains<T>(this IList<T> collection, T item, string argumentName = "", string message = DefaultMessage)
         {
@@ -161,6 +208,9 @@ namespace KY.Core
             return collection;
         }
 
+        /// <summary>
+        /// Assert the given value is included at least once
+        /// </summary>
         [DebuggerHidden]
         public static List<T> AssertContains<T>(this List<T> collection, T item, string argumentName = "", string message = DefaultMessage)
         {
@@ -168,6 +218,9 @@ namespace KY.Core
             return collection;
         }
 
+        /// <summary>
+        /// Assert the collection is not null and contains at least one entry
+        /// </summary>
         [DebuggerHidden]
         public static IEnumerable<T> AssertIsNotNullOrEmpty<T>(this IEnumerable<T> collection, string argumentName = "", string message = DefaultMessage)
         {
@@ -179,6 +232,9 @@ namespace KY.Core
             return collection;
         }
 
+        /// <summary>
+        /// Assert the collection is not null and contains at least one entry
+        /// </summary>
         [DebuggerHidden]
         public static IList<T> AssertIsNotNullOrEmpty<T>(this IList<T> collection, string argumentName = "", string message = DefaultMessage)
         {
@@ -186,6 +242,9 @@ namespace KY.Core
             return collection;
         }
 
+        /// <summary>
+        /// Assert the collection is not null and contains at least one entry
+        /// </summary>
         [DebuggerHidden]
         public static List<T> AssertIsNotNullOrEmpty<T>(this List<T> collection, string argumentName = "", string message = DefaultMessage)
         {
@@ -193,6 +252,9 @@ namespace KY.Core
             return collection;
         }
 
+        /// <summary>
+        /// Assert both given values are equal
+        /// </summary>
         [DebuggerHidden]
         public static T AssertIs<T>(this T self, T expected, string argumentName = "", string message = DefaultMessage)
         {
@@ -203,6 +265,9 @@ namespace KY.Core
             throw new ArgumentOutOfRangeException(argumentName, self, message == DefaultMessage ? "Has to be " + expected : message);
         }
 
+        /// <summary>
+        /// Assert both given values are not equal
+        /// </summary>
         [DebuggerHidden]
         public static T AssertIsNot<T>(this T self, T notExpected, string argumentName = "", string message = DefaultMessage)
         {
