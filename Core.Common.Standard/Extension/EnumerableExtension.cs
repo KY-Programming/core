@@ -199,5 +199,10 @@ namespace KY.Core
         {
             return source.Skip(1).FirstOrDefault(predicate);
         }
+
+        public static IEnumerable<T> RemoveNulls<T>(this IEnumerable<T?> source)
+        {
+            return source.Where(x => x != null);
+        }
     }
 }
