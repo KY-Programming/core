@@ -39,4 +39,10 @@ public static class FileSystemWatcherExtension
         watcher.IncludeSubdirectories = true;
         return watcher;
     }
+
+    public static FileSystemWatcher FilterEvents (this FileSystemWatcher watcher, NotifyFilters filters)
+    {
+        watcher.NotifyFilter = filters;
+        return watcher;
+    }
 }
