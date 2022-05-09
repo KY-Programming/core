@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
@@ -174,6 +175,22 @@ namespace KY.Core.DataAccess
         public string GetName(string path)
         {
             return Path.GetFileName(path);
+        }
+
+        public FileSystemWatcher Watch(string path)
+        {
+            string absolutePath = FileSystem.ToAbsolutePath(path);
+            string directory = FileSystem.GetDirectoryName(absolutePath);
+            string file = FileSystem.GetFileName(absolutePath);
+            FileSystemWatcher watchdog = new (directory);
+            watchdog.Filter = file;
+            watchdog.EnableRaisingEvents = true;
+            return watchdog;
+        }
+
+        public DateTime GetLastWriteTime(params string[] pathChunks)
+        {
+            return File.GetLastWriteTime(this.pathHelper.ToAbsolute(pathChunks));
         }
     }
 }

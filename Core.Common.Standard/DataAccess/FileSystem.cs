@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Xml.Linq;
@@ -203,9 +204,36 @@ namespace KY.Core.DataAccess
             return directoryHelper.ToDirectory(directory);
         }
 
+        public static string GetDirectoryName(string path)
+        {
+            return directoryHelper.GetName(path);
+        }
+
         public static string GetFileName(string path)
         {
             return fileHelper.GetName(path);
+        }
+
+        public static FileSystemWatcher Watch(string path)
+        {
+            if (DirectoryExists(path))
+            {
+                return directoryHelper.Watch(path);
+            }
+            if (FileExists(path))
+            {
+                return fileHelper.Watch(path);
+            }
+            throw new InvalidOperationException($"Can not watch file or directory '{path}': Not found.");
+        }
+
+        public static DateTime GetLastWriteTime(params string[] pathChunks)
+        {
+            if (DirectoryExists(pathChunks))
+            {
+                return directoryHelper.GetLastWriteTime(pathChunks);
+            }
+            return fileHelper.GetLastWriteTime(pathChunks);
         }
     }
 }

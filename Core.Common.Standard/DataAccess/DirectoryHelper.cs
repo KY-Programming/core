@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -92,6 +93,19 @@ namespace KY.Core.DataAccess
         public string GetName(string directory)
         {
             return Path.GetDirectoryName(directory);
+        }
+
+        public FileSystemWatcher Watch(string path)
+        {
+            string absolutePath = this.pathHelper.ToAbsolute(path);
+            FileSystemWatcher watchdog = new (absolutePath);
+            watchdog.EnableRaisingEvents = true;
+            return watchdog;
+        }
+
+        public DateTime GetLastWriteTime(params string[] pathChunks)
+        {
+            return Directory.GetLastWriteTime(this.pathHelper.ToAbsolute(pathChunks));
         }
     }
 }
