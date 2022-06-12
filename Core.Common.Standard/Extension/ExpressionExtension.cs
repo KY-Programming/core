@@ -60,6 +60,9 @@ namespace KY.Core
             if (expression == null)
                 return null;
 
+            if (expression.Body is MethodCallExpression methodCallExpression)
+                return methodCallExpression.Method;
+
             MemberExpression memberExpression = ExtractMemberExpression(expression);
             var memberInfo = memberExpression.Member;
             if (memberInfo == null)
@@ -112,19 +115,17 @@ namespace KY.Core
 
         private static MemberExpression ExtractMemberExpression(Expression expression)
         {
-            var memberExpression = expression as MemberExpression;
-            if (memberExpression != null)
-                return memberExpression;
-
-            var unaryExpression = expression as UnaryExpression;
-            if (unaryExpression != null)
-                return ExtractMemberExpression(unaryExpression.Operand);
-
-            var binaryExpression = expression as BinaryExpression;
-            if (binaryExpression != null)
-                return ExtractMemberExpression(binaryExpression.Left);
-
-            throw new InvalidOperationException(/*Properties.Resources.ExceptionTextUnknownExpressionType*/);
+            switch (expression)
+            {
+                case MemberExpression memberExpression:
+                    return memberExpression;
+                case UnaryExpression unaryExpression:
+                    return ExtractMemberExpression(unaryExpression.Operand);
+                case BinaryExpression binaryExpression:
+                    return ExtractMemberExpression(binaryExpression.Left);
+                default:
+                    throw new InvalidOperationException( /*Properties.Resources.ExceptionTextUnknownExpressionType*/);
+            }
         }
 
         public static List<MemberExpression> CollectMemberExpressions<T>(this Expression<T> expression)
