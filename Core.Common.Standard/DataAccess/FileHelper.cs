@@ -94,7 +94,7 @@ internal class FileHelper
     public Stream OpenWrite(params string[] pathChunks)
     {
         string path = this.pathHelper.ToAbsolute(pathChunks);
-        return File.Open(path, FileMode.OpenOrCreate);
+        return File.Open(path, FileMode.Create);
     }
 
     public void Copy(string from, string to, bool overwrite = false)
