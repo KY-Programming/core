@@ -157,6 +157,7 @@ namespace KY.Core
             }
         }
 
+        [DebuggerHidden]
         public static IEnumerable<T> Unique<T>(this IEnumerable<T> source)
         {
             List<T> found = new List<T>();
@@ -170,6 +171,7 @@ namespace KY.Core
             }
         }
 
+        [DebuggerHidden]
         public static TimeSpan Sum<T>(this IEnumerable<T> source, Func<T, TimeSpan> action)
         {
             TimeSpan result = default(TimeSpan);
@@ -180,29 +182,64 @@ namespace KY.Core
             return result;
         }
 
+        [DebuggerHidden]
         public static T Second<T>(this IEnumerable<T> source)
         {
             return source.Skip(1).First();
         }
 
+        [DebuggerHidden]
         public static T Second<T>(this IEnumerable<T> source, Func<T, bool> predicate)
         {
             return source.Skip(1).First(predicate);
         }
 
+        [DebuggerHidden]
         public static T SecondOrDefault<T>(this IEnumerable<T> source)
         {
             return source.Skip(1).FirstOrDefault();
         }
 
+        [DebuggerHidden]
         public static T SecondOrDefault<T>(this IEnumerable<T> source, Func<T, bool> predicate)
         {
             return source.Skip(1).FirstOrDefault(predicate);
         }
 
+        [DebuggerHidden]
         public static IEnumerable<T> RemoveNulls<T>(this IEnumerable<T?> source)
         {
             return source.Where(x => x != null);
+        }
+        
+        [DebuggerHidden]
+        public static IEnumerable<T> NotNull<T>(this IEnumerable<T?> enumerable) where T : class
+        {
+            return enumerable.Where(x => x != null).Select(x => x!);
+        }
+        
+        [DebuggerHidden]
+        public static IEnumerable<T> NotNull<T>(this IEnumerable<T?> enumerable) where T : struct
+        {
+            return enumerable.Where(x => x != null).Select(x => x.Value);
+        }
+        
+        [DebuggerHidden]
+        public static IEnumerable<string> NotNullOrEmpty<T>(this IEnumerable<string?> enumerable)
+        {
+            return enumerable.Where(x => !string.IsNullOrEmpty(x)).Select(x => x!);
+        }
+        
+        [DebuggerHidden]
+        public static IEnumerable<string> NotNullOrWhitespace<T>(this IEnumerable<string?> enumerable)
+        {
+            return enumerable.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x!);
+        }
+        
+        [DebuggerHidden]
+        public static IEnumerable<int> NotNullOrZero<T>(this IEnumerable<int?> enumerable)
+        {
+            return enumerable.Where(x => x != null && x != 0).Select(x => x.Value);
         }
     }
 }
