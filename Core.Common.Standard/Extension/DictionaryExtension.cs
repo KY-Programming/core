@@ -32,7 +32,7 @@ namespace KY.Core
         {
             foreach (KeyValuePair<TKey, TValue> pair in dictionary)
             {
-                if (pair.Value.Equals(value))
+                if (Equals(pair.Value, value))
                 {
                     dictionary.Remove(pair.Key);
                     return;
