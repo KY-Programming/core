@@ -55,6 +55,20 @@ namespace KY.Core
             return firstDayInWeek;
         }
 
+        public static DateTime GetFirstDayOfWeek(int year, int weekOfYear)
+        {
+            DateTime jan1 = new(year, 1, 1);
+            DateTime firstThursday = jan1.AddDays(DayOfWeek.Thursday - jan1.DayOfWeek);
+            int firstWeek = CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(firstThursday, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday);
+            int weekNumber = weekOfYear;
+            if (firstWeek == 1)
+            {
+                weekNumber -= 1;
+            }
+            DateTime result = firstThursday.AddDays(weekNumber * 7);
+            return result.AddDays(-3);
+        }
+
         public static DateTime GetFirstDayOfWeekInThisMonth(this DateTime dayInWeek)
         {
             CultureInfo defaultCultureInfo = CultureInfo.CurrentCulture;

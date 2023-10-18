@@ -85,7 +85,7 @@ public static class StringExtension
 
     public static string FirstCharToLower(this string value)
     {
-        if (!string.IsNullOrEmpty(value) && value != value.ToUpper())
+        if (!string.IsNullOrEmpty(value))
         {
             value = value[0].ToString().ToLower() + value.Substring(1);
         }
