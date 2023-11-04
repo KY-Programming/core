@@ -12,6 +12,7 @@ namespace KY.Core
     {
         private static bool isActivated;
         private static bool isRuntimeLocationsAdded;
+        private static IAssemblyCache cache;
 
         public static List<SearchLocation> Locations { get; }
 
@@ -35,13 +36,14 @@ namespace KY.Core
             }
         }
 
-        public static void Activate()
+        public static void Activate(IAssemblyCache assemblyCache)
         {
             if (isActivated)
             {
                 return;
             }
             isActivated = true;
+            cache = assemblyCache;
             AppDomain.CurrentDomain.AssemblyResolve += Resolve;
         }
 
@@ -53,6 +55,14 @@ namespace KY.Core
 
         private static Assembly Resolve(object sender, ResolveEventArgs args)
         {
+            if (cache?.Local != null && cache.Local.TryGetValue(args.Name, out string localPath) && FileSystem.FileExists(localPath))
+            {
+                return Assembly.Load(localPath);
+            }
+            if (cache?.Global != null && cache.Global.TryGetValue(args.Name, out string globalPath) && FileSystem.FileExists(globalPath))
+            {
+                return Assembly.Load(globalPath);
+            }
             return CreateLocator()
                    .AddLocation(0, args.RequestingAssembly)
                    .Locate(args.Name, null, false, true);
