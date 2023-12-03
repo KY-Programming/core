@@ -8,6 +8,7 @@ namespace KY.Core
 {
     public class InstalledRuntime
     {
+        private static InstalledRuntime[] cache;
         public string Type { get; }
         public Version Version { get; }
         public string Path { get; }
@@ -29,7 +30,7 @@ namespace KY.Core
         
         public static InstalledRuntime[] Get()
         {
-            Process process = new Process();
+            Process process = new();
             process.StartInfo.FileName = "dotnet";
             process.StartInfo.Arguments = "--list-runtimes";
             process.StartInfo.UseShellExecute = false;
@@ -44,7 +45,11 @@ namespace KY.Core
 
         public static InstalledRuntime[] GetCurrent()
         {
-            return Get().Where(x => x.Version == Environment.Version).ToArray();
+            if (cache == null)
+            {
+                cache = Get().Where(x => x.Version == Environment.Version).ToArray();
+            }
+            return cache;
         }
     }
 }

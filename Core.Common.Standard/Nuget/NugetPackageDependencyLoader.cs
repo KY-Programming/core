@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -10,6 +11,9 @@ namespace KY.Core
 {
     public static class NugetPackageDependencyLoader
     {
+        public static readonly string WindowsNugetCachePath = FileSystem.Combine(Environment.ExpandEnvironmentVariables("%USERPROFILE%"), ".nuget", "packages");
+        public static readonly string WindowsNugetFallbackPath = FileSystem.Combine(Environment.ExpandEnvironmentVariables("%PROGRAMFILES%"), "dotnet", "sdk", "NuGetFallbackFolder");
+        public static readonly string LinuxNugetCachePath = FileSystem.Combine(Environment.GetEnvironmentVariable("HOME"), ".nuget", "packages");
         private static bool isActivated;
         private static bool isRuntimeLocationsAdded;
         private static IAssemblyCache cache;
@@ -26,18 +30,19 @@ namespace KY.Core
                         };
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                Locations.Add(new SearchLocation(FileSystem.Combine(Environment.ExpandEnvironmentVariables("%USERPROFILE%"), ".nuget", "packages")).SearchOnlyByVersion());
-                Locations.Add(new SearchLocation(FileSystem.Combine(Environment.ExpandEnvironmentVariables("%PROGRAMFILES%"), "dotnet", "sdk", "NuGetFallbackFolder")).SearchOnlyByVersion());
-                Locations.Add(new SearchLocation(FileSystem.Combine(Environment.ExpandEnvironmentVariables("%PROGRAMFILES%"), "dotnet", "sdk", "NuGetFallbackFolder")).SearchOnlyLocal());
+                Locations.Add(new SearchLocation(WindowsNugetCachePath).SearchOnlyByVersion());
+                Locations.Add(new SearchLocation(WindowsNugetFallbackPath).SearchOnlyByVersion());
+                Locations.Add(new SearchLocation(WindowsNugetFallbackPath).SearchOnlyLocal());
             }
             else
             {
-                Locations.Add(new SearchLocation(FileSystem.Combine(Environment.GetEnvironmentVariable("HOME"), ".nuget", "packages")).SearchOnlyByVersion());
+                Locations.Add(new SearchLocation(LinuxNugetCachePath).SearchOnlyByVersion());
             }
         }
 
-        public static void Activate(IAssemblyCache assemblyCache)
+        public static void Activate(IAssemblyCache assemblyCache = null)
         {
+            cache = assemblyCache ?? cache;
             if (isActivated)
             {
                 return;
@@ -55,17 +60,21 @@ namespace KY.Core
 
         private static Assembly Resolve(object sender, ResolveEventArgs args)
         {
-            if (cache?.Local != null && cache.Local.TryGetValue(args.Name, out string localPath) && FileSystem.FileExists(localPath))
+            string assemblyPath = cache?.Resolve(args.Name);
+            if (assemblyPath != null && FileSystem.FileExists(assemblyPath))
             {
-                return Assembly.Load(localPath);
+                Stopwatch stopwatch = new();
+                stopwatch.Start();
+                Assembly cachedAssembly = AssemblyLoadContext.Default?.LoadFromAssemblyPath(assemblyPath);
+                stopwatch.Stop();
+                Logger.Trace($"Assembly {args.Name.Split(',').FirstOrDefault()} loaded in {(stopwatch.ElapsedMilliseconds >= 1 ? stopwatch.ElapsedMilliseconds.ToString() : "<1")} ms");
+                return cachedAssembly;
             }
-            if (cache?.Global != null && cache.Global.TryGetValue(args.Name, out string globalPath) && FileSystem.FileExists(globalPath))
-            {
-                return Assembly.Load(globalPath);
-            }
-            return CreateLocator()
-                   .AddLocation(0, args.RequestingAssembly)
-                   .Locate(args.Name, null, false, true);
+            Assembly assembly = CreateLocator()
+                                .AddLocation(0, args.RequestingAssembly)
+                                .Locate(args.Name, null, false, true);
+            cache?.Add(args.Name, assembly.Location);
+            return assembly;
         }
 
         public static NugetAssemblyLocator CreateLocator()

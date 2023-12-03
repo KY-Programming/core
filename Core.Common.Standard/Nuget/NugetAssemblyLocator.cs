@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -209,6 +210,8 @@ namespace KY.Core
             if (FileSystem.FileExists(file))
             {
                 Logger.Trace($"Assembly found in: {file}");
+                Stopwatch stopwatch = new();
+                stopwatch.Start();
                 try
                 {
                     return AssemblyLoadContext.Default?.LoadFromAssemblyPath(file);
@@ -225,6 +228,11 @@ namespace KY.Core
                     Logger.Trace($"All dependencies loaded. Clean up and try to load {info.Name} again...");
                     AssemblyLoadContext.GetLoadContext(assembly)?.Unload();
                     return AssemblyLoadContext.Default?.LoadFromAssemblyPath(file);
+                }
+                finally
+                {
+                    stopwatch.Stop();
+                    Logger.Trace($"Assembly {info.Name} loaded in {(stopwatch.ElapsedMilliseconds >= 1 ? stopwatch.ElapsedMilliseconds.ToString() : "<1")} ms");
                 }
             }
             else
