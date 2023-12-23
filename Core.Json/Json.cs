@@ -7,6 +7,9 @@ namespace KY.Core;
 
 public static class Json
 {
+    public static JsonArray Array { get; } = new();
+    public static JsonObject Object { get; } = new();
+    
     public static T Deserialize<T>(string path)
     {
         if (!FileSystem.FileExists(path))

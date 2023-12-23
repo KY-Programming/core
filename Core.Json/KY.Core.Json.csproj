@@ -3,11 +3,11 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <RootNamespace>KY.Core</RootNamespace>
-        <Version>4.2.1</Version>
+        <Version>4.3.0</Version>
         <Authors>KY-Programming</Authors>
         <Company>KY-Programmingp</Company>
         <Product>KY.Core</Product>
-        <Copyright>2022 - KY-Programming</Copyright>
+        <Copyright>2023 - KY-Programming</Copyright>
         <Description>KY.Core.Json for .net Standard
             Contains Json serialization and deserialization helpers
         </Description>
@@ -21,8 +21,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="KY.Core.Common" Version="4.30.1" />
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+        <PackageReference Include="KY.Core.Common" Version="4.30.1"/>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.1"/>
     </ItemGroup>
 
 </Project>
