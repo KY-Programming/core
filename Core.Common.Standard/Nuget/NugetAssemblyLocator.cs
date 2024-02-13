@@ -16,7 +16,7 @@ namespace KY.Core
 
         private readonly List<string> resolvedAssemblies = new List<string>();
 
-        public static List<string> FrameworkFolders { get; } = new List<string>(new[] { "netstandard*", "netcore*", "net5*", "net4*" });
+        public static List<string> FrameworkFolders { get; } = new List<string>(new[] { "netstandard*", "net*" });
         public static List<string> NugetFolders { get; } = new List<string>(new[] { "lib", "ref" });
 
         public List<SearchLocation> Locations { get; }
