@@ -26,7 +26,7 @@ public class JsonArray
         }
         array.Add(value);
     }
-    
+
     public void Insert<T>(JToken target, string propertyPath, int index, T value)
     {
         if (value is JToken token)
@@ -47,7 +47,7 @@ public class JsonArray
         }
         array.Insert(index, value);
     }
-    
+
     public void Remove<T>(JToken target, string propertyPath, T value)
     {
         if (value is JToken token)
@@ -72,7 +72,11 @@ public class JsonArray
         }
         else
         {
-            array.Remove(array.First(x => x.ToString() == value.ToString()));
+            JToken token = array.FirstOrDefault(x => x.ToString() == value.ToString());
+            if (token != null)
+            {
+                array.Remove(token);
+            }
         }
     }
 }
