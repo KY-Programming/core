@@ -8,11 +8,15 @@ namespace KY.Core
     public static class Random2
     {
         private static readonly Random random = new Random();
-        private static string defaultAlphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-!?@";
+        public const string DefaultAlphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-!?@";
+        public const string Base64Alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/";
+        public const string Base32Alphabet = "abcdefghijklmnopqrstuvwxyz234567";
+        public const string Base36Alphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
+        public const string UrlSafeAlphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_";
 
         public static string NextString(int minLength = 5, int maxLength = 25, string alphabet = null)
         {
-            alphabet = alphabet ?? defaultAlphabet;
+            alphabet ??= DefaultAlphabet;
             int length = random.Next(minLength, maxLength);
             StringBuilder builder = new StringBuilder(length);
             for (int i = 0; i < length; i++)
