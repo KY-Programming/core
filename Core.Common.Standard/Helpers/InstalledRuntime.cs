@@ -8,7 +8,7 @@ namespace KY.Core
 {
     public class InstalledRuntime
     {
-        private static InstalledRuntime[] cache;
+        private static InstalledRuntime[]? cache;
         public string Type { get; }
         public Version Version { get; }
         public string Path { get; }

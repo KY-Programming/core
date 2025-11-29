@@ -199,12 +199,12 @@ public static class FileSystem
         fileHelper.Write(path, xml);
     }
 
-    public static string ToDirectory(string directory)
+    public static string? ToDirectory(string? directory)
     {
         return directoryHelper.ToDirectory(directory);
     }
 
-    public static string GetDirectoryName(string path)
+    public static string? GetDirectoryName(string? path)
     {
         return directoryHelper.GetName(path);
     }

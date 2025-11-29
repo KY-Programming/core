@@ -85,12 +85,12 @@ namespace KY.Core.DataAccess
             from.GetDirectories().ForEach(x => this.Copy(x, Path.Combine(to, x.Name), overwrite));
         }
 
-        public string ToDirectory(string directory)
+        public string? ToDirectory(string? directory)
         {
             return directory == null ? null : nameRegex.Replace(directory, string.Empty).Replace("\\", "");
         }
 
-        public string GetName(string directory)
+        public string? GetName(string? directory)
         {
             return Path.GetDirectoryName(directory);
         }
