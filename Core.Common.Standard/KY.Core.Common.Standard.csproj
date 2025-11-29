@@ -4,11 +4,11 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <RootNamespace>KY.Core</RootNamespace>
         <AssemblyName>KY.Core.Common</AssemblyName>
-        <Version>4.36.0</Version>
+        <Version>4.37.0</Version>
         <Authors>KY-Programming</Authors>
         <Company>KY-Programmingp</Company>
         <Product>KY.Core</Product>
-        <Copyright>2024 - KY-Programming</Copyright>
+        <Copyright>2025 - KY-Programming</Copyright>
         <Description>KY.Core.Common for .net Standard
             Contains Dependency Injection, Module Loader and some helper classes
         </Description>
@@ -30,9 +30,6 @@
             <AutoGen>True</AutoGen>
             <DependentUpon>Resources.resx</DependentUpon>
         </Compile>
-        <Compile Remove="Nuget\AssemblyLocation.cs" />
-        <Compile Remove="Nuget\AssemblyLocator.cs" />
-        <Compile Remove="Nuget\AssemblySearchParameters.cs" />
     </ItemGroup>
 
     <ItemGroup>
