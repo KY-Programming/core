@@ -9,7 +9,7 @@ public static class Json
 {
     public static JsonArray Array { get; } = new();
     public static JsonObject Object { get; } = new();
-    
+
     public static T Deserialize<T>(string path)
     {
         if (!FileSystem.FileExists(path))
@@ -38,7 +38,10 @@ public static class Json
     {
         using StreamWriter writer = new(stream);
         using JsonTextWriter jsonWriter = new(writer);
-        JsonSerializer serializer = new();
+        JsonSerializer serializer = new()
+        {
+            ContractResolver = new DoNotSerializeToFileSystemResolver()
+        };
         hook?.Invoke(serializer);
         serializer.Serialize(jsonWriter, data);
         jsonWriter.Flush();

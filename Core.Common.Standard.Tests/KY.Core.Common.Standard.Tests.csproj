@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>KY.Core.Common.Standard.Tests</RootNamespace>
     <AssemblyName>KY.Core.Common.Standard.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">15.0</VisualStudioVersion>
@@ -51,8 +51,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AnonymizerTests.cs" />
-    <Compile Include="AssemblyLoadTests.cs" />
     <Compile Include="DependencyResolverTests.cs" />
+    <Compile Include="DotNetVersionTests.cs" />
     <Compile Include="ObjectExtensionTests.cs" />
     <Compile Include="PathHelperTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -60,12 +60,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Core.Common.Standard\KY.Core.Common.Standard.csproj">
-      <Project>{eb1f15a1-ceaa-4838-9913-e1b4383c809f}</Project>
-      <Name>KY.Core.Common.Standard</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
