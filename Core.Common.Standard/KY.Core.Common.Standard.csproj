@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFrameworks>netstandard2.0;net10.0</TargetFrameworks>
         <RootNamespace>KY.Core</RootNamespace>
         <AssemblyName>KY.Core.Common</AssemblyName>
-        <Version>4.37.0</Version>
+        <Version>10.0.0</Version>
         <Authors>KY-Programming</Authors>
         <Company>KY-Programmingp</Company>
         <Product>KY.Core</Product>
-        <Copyright>2025 - KY-Programming</Copyright>
+        <Copyright>2026 - KY-Programming</Copyright>
         <Description>KY.Core.Common for .net Standard
             Contains Dependency Injection, Module Loader and some helper classes
         </Description>
@@ -41,6 +41,12 @@
 
     <ItemGroup>
         <None Remove="KY.Core.Common.Standard.csproj.DotSettings" />
+    </ItemGroup>
+
+    <!-- System.Diagnostics.EventLog (used by EventLogTarget) is part of the netstandard2.0
+         reference set but ships as a separate package on modern .NET. -->
+    <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+        <PackageReference Include="System.Diagnostics.EventLog" Version="10.0.8" />
     </ItemGroup>
 
 </Project>

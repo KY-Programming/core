@@ -18,6 +18,10 @@ namespace KY.Core
         public override void Write(LogEntry entry)
         {
 #if !NETSTANDARD2_0
+            if (!OperatingSystem.IsWindows())
+            {
+                return;
+            }
             try
             {
                 lock (this.eventLogeMutex)
