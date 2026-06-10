@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <RootNamespace>KY.Core</RootNamespace>
-        <Version>4.4.0</Version>
+        <Version>10.0.0</Version>
         <Authors>KY-Programming</Authors>
         <Company>KY-Programmingp</Company>
         <Product>KY.Core</Product>
@@ -21,7 +21,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="KY.Core.Common" Version="4.37.0" />
+        <PackageReference Include="KY.Core.Common" Version="10.0.0" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     </ItemGroup>
 
