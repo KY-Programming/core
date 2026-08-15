@@ -200,5 +200,91 @@ namespace KY.Core.Common.Standard.Tests
             Assert.AreEqual(string.Empty, version.BuildPre);
             Assert.AreEqual(string.Empty, version.RevisionPre);
         }
+
+        [TestMethod]
+        public void Compare_Flags_Do_Not_Overlap()
+        {
+            Assert.AreEqual(SemanticVersion.Compare.Major | SemanticVersion.Compare.Minor, SemanticVersion.Compare.MajorAndMinor);
+            Assert.IsFalse(SemanticVersion.Compare.MajorAndMinor.HasFlag(SemanticVersion.Compare.Build));
+            Assert.IsFalse(SemanticVersion.Compare.MajorAndMinor.HasFlag(SemanticVersion.Compare.Revision));
+            Assert.IsFalse(SemanticVersion.Compare.MajorAndMinorAndBuild.HasFlag(SemanticVersion.Compare.Revision));
+            Assert.IsTrue(SemanticVersion.Compare.All.HasFlag(SemanticVersion.Compare.Revision));
+        }
+
+        /// <summary>
+        /// A NuGet package folder is "10.0.0" while the assembly version asking for it is "10.0.0.0". Both name the
+        /// same version, so the exact match has to win over the newer 10.0.1-preview.13 in the same major.minor.
+        /// </summary>
+        [TestMethod]
+        public void Given_A_Four_Part_Version_Then_Return_The_Equal_Three_Part_Version()
+        {
+            List<SemanticVersion> versions = new List<SemanticVersion>
+                                             {
+                                                 new SemanticVersion("10.0.0"),
+                                                 new SemanticVersion("10.0.1-preview.11"),
+                                                 new SemanticVersion("10.0.1-preview.13"),
+                                                 new SemanticVersion("10.1.0"),
+                                                 new SemanticVersion("10.1.0-preview.0")
+                                             };
+            Assert.AreEqual("10.0.0", versions.Closest(new Version(10, 0, 0, 0))?.ToString());
+        }
+
+        [TestMethod]
+        public void Given_A_Three_Part_Version_Then_Return_The_Equal_Four_Part_Version()
+        {
+            List<SemanticVersion> versions = new List<SemanticVersion>
+                                             {
+                                                 new SemanticVersion("10.0.0.0"),
+                                                 new SemanticVersion("10.0.1.0")
+                                             };
+            Assert.AreEqual("10.0.0.0", versions.Closest("10.0.0")?.ToString());
+        }
+
+        [TestMethod]
+        public void Given_A_Version_Without_Build_Then_Return_The_Newest_In_The_Same_Major_And_Minor()
+        {
+            List<SemanticVersion> versions = new List<SemanticVersion>
+                                             {
+                                                 new SemanticVersion("10.0.0"),
+                                                 new SemanticVersion("10.0.5"),
+                                                 new SemanticVersion("10.1.0")
+                                             };
+            Assert.AreEqual("10.0.5", versions.Closest("10.0")?.ToString());
+        }
+
+        [TestMethod]
+        public void Given_A_Version_That_Only_Exists_As_Pre_Version_Then_Do_Not_Return_It_As_Equal()
+        {
+            List<SemanticVersion> versions = new List<SemanticVersion>
+                                             {
+                                                 new SemanticVersion("10.0.0-preview.1"),
+                                                 new SemanticVersion("10.0.2")
+                                             };
+            Assert.AreEqual("10.0.2", versions.Closest(new Version(10, 0, 0, 0))?.ToString());
+        }
+
+        [TestMethod]
+        public void Given_A_Version_Without_A_Match_In_The_Same_Minor_Then_Return_The_Newest_In_The_Same_Major()
+        {
+            List<SemanticVersion> versions = new List<SemanticVersion>
+                                             {
+                                                 new SemanticVersion("10.1.0"),
+                                                 new SemanticVersion("10.3.0"),
+                                                 new SemanticVersion("11.0.0")
+                                             };
+            Assert.AreEqual("10.3.0", versions.Closest(new Version(10, 2, 0, 0))?.ToString());
+        }
+
+        [TestMethod]
+        public void Given_A_Version_Without_A_Match_In_The_Same_Major_Then_Return_The_Closest_Older()
+        {
+            List<SemanticVersion> versions = new List<SemanticVersion>
+                                             {
+                                                 new SemanticVersion("8.0.0"),
+                                                 new SemanticVersion("9.0.0"),
+                                                 new SemanticVersion("11.0.0")
+                                             };
+            Assert.AreEqual("9.0.0", versions.Closest(new Version(10, 0, 0, 0))?.ToString());
+        }
     }
 }

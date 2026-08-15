@@ -255,10 +255,10 @@ public class SemanticVersion : IComparable<SemanticVersion>, IEquatable<Semantic
     [Flags]
     public enum Compare
     {
-        Major,
-        Minor,
-        Build,
-        Revision,
+        Major = 1,
+        Minor = 2,
+        Build = 4,
+        Revision = 8,
         MajorAndMinor = Major | Minor,
         MajorAndMinorAndBuild = MajorAndMinor | Build,
         MajorAndMinorAndBuildAndRevision = MajorAndMinorAndBuild | Revision,
