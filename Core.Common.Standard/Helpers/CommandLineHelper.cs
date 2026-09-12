@@ -1,10 +1,13 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace KY.Core
 {
     public static class CommandLineHelper
     {
+        private static bool IsWindows => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
         public static bool RunWithTrace(StringBuilder commands)
         {
             return RunWithTrace(commands.ToString());
@@ -22,11 +25,13 @@ namespace KY.Core
 
         private static bool Run(string commands, out string result, Mode mode = Mode.Trace)
         {
+            bool isWindows = IsWindows;
             StringBuilder errorBuilder = new();
             StringBuilder outputBuilder = new();
             Process cmd = new();
-            cmd.StartInfo.FileName = "cmd.exe";
-            cmd.StartInfo.Arguments = "/k";
+            // cmd.exe /k and sh -s both read the command list from stdin and exit once it is closed
+            cmd.StartInfo.FileName = isWindows ? "cmd.exe" : "/bin/sh";
+            cmd.StartInfo.Arguments = isWindows ? "/k" : "-s";
             cmd.StartInfo.RedirectStandardInput = true;
             cmd.StartInfo.RedirectStandardOutput = true;
             cmd.StartInfo.RedirectStandardError = true;
@@ -38,7 +43,10 @@ namespace KY.Core
             }
             if (mode == Mode.Output)
             {
-                commands = "@echo OFF\nset PROMPT=$+\n" + commands;
+                if (isWindows)
+                {
+                    commands = "@echo OFF\nset PROMPT=$+\n" + commands;
+                }
                 cmd.OutputDataReceived += (sender, args) => outputBuilder.AppendLine(args.Data);
             }
             cmd.ErrorDataReceived += (sender, args) => errorBuilder.AppendLine(args.Data);
@@ -50,11 +58,18 @@ namespace KY.Core
             cmd.StandardInput.Close();
             cmd.WaitForExit();
             result = outputBuilder.ToString().Replace("\r", string.Empty);
-            int commandsIndex = result.IndexOf(commands.Replace("\r", string.Empty));
-            if (commandsIndex >= 0)
+            if (isWindows)
             {
-                int commandsEnd = commandsIndex + commands.Length;
-                result = result.Substring(commandsEnd, result.Length - commandsEnd).Trim();
+                int commandsIndex = result.IndexOf(commands.Replace("\r", string.Empty));
+                if (commandsIndex >= 0)
+                {
+                    int commandsEnd = commandsIndex + commands.Length;
+                    result = result.Substring(commandsEnd, result.Length - commandsEnd).Trim();
+                }
+            }
+            else
+            {
+                result = result.Trim();
             }
             if (errorBuilder.Length > 0 && cmd.ExitCode != 0)
             {

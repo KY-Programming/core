@@ -44,10 +44,8 @@
         <None Include="icon.png" Pack="true" PackagePath="\" />
     </ItemGroup>
 
-    <!-- System.Diagnostics.EventLog (used by EventLogTarget) is part of the netstandard2.0
-         reference set but ships as a separate package on modern .NET. -->
     <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
-      <PackageReference Include="System.Diagnostics.EventLog" Version="10.0.10" />
+        <PackageReference Include="System.Diagnostics.EventLog" Version="10.0.12" />
     </ItemGroup>
 
 </Project>
