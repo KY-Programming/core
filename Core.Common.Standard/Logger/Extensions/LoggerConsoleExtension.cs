@@ -7,7 +7,7 @@ namespace KY.Core
         public static void TraceJumpBack(this LoggerExtension extension, string message)
         {
             Logger.Trace(message);
-            if (Logger.Console.IsConsoleAvailable)
+            if (Logger.Console.IsConsoleAvailable && !Console.IsOutputRedirected)
             {
                 Console.CursorTop--;
             }
@@ -16,7 +16,7 @@ namespace KY.Core
         public static void WarningJumpBack(this LoggerExtension extension, string message)
         {
             Logger.Warning(message);
-            if (Logger.Console.IsConsoleAvailable)
+            if (Logger.Console.IsConsoleAvailable && !Console.IsOutputRedirected)
             {
                 Console.CursorTop--;
             }

@@ -34,6 +34,14 @@ namespace KY.Core
                     formattedMessage = string.Format(Resources.ConsoleTraceFormat, entry.Timestamp, entry.Message);
                 }
 
+                // Redirected output (a pipe, a file, a parent process reading it) has no window: asking for its width
+                // throws, which used to switch the console target off for good. Nothing to shorten or pad there.
+                if (Console.IsOutputRedirected)
+                {
+                    Console.WriteLine(formattedMessage);
+                    return;
+                }
+
                 if (entry.Shortable && this.ShortenEntries && formattedMessage.Length >= Console.WindowWidth && Console.WindowWidth > 0)
                 {
                     formattedMessage = formattedMessage.Substring(0, Console.WindowWidth - 4) + "...";
