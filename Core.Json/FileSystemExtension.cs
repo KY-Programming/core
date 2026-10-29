@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using KY.Core.DataAccess;
+using Newtonsoft.Json;
 
 namespace KY.Core;
 
@@ -12,17 +13,16 @@ public static class FileSystemExtension
             return default;
         }
         using Stream stream = fileSystem.OpenRead(path);
-        return Json.Deserialize<T>(path);
+        return Json.Deserialize<T>(stream);
     }
 
     public static void SerializeJson<T>(this IFileSystem fileSystem, T data, string path)
     {
-        using Stream stream = fileSystem.OpenWrite(path);
-        Json.Serialize(data, path);
+        fileSystem.WriteAllText(path, Json.SerializeToString(data));
     }
 
     public static void SerializeJsonIndented<T>(this IFileSystem fileSystem, T data, string path)
     {
-        Json.SerializeIndented(data, path);
+        fileSystem.WriteAllText(path, Json.SerializeToString(data, serializer => serializer.Formatting = Formatting.Indented));
     }
 }

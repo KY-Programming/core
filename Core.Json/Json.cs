@@ -30,21 +30,34 @@ public static class Json
 
     public static void Serialize<T>(T data, string path, Action<JsonSerializer> hook = null)
     {
-        using Stream stream = FileSystem.OpenWrite(path);
-        Serialize(data, stream, hook);
+        FileSystem.WriteAllText(path, SerializeToString(data, hook));
+    }
+
+    internal static string SerializeToString<T>(T data, Action<JsonSerializer> hook = null)
+    {
+        using StringWriter writer = new();
+        using JsonTextWriter jsonWriter = new(writer);
+        CreateSerializer(hook).Serialize(jsonWriter, data);
+        jsonWriter.Flush();
+        return writer.ToString();
     }
 
     public static void Serialize<T>(T data, Stream stream, Action<JsonSerializer> hook = null)
     {
         using StreamWriter writer = new(stream);
         using JsonTextWriter jsonWriter = new(writer);
+        CreateSerializer(hook).Serialize(jsonWriter, data);
+        jsonWriter.Flush();
+    }
+
+    private static JsonSerializer CreateSerializer(Action<JsonSerializer> hook)
+    {
         JsonSerializer serializer = new()
         {
             ContractResolver = new DoNotSerializeToFileSystemResolver()
         };
         hook?.Invoke(serializer);
-        serializer.Serialize(jsonWriter, data);
-        jsonWriter.Flush();
+        return serializer;
     }
 
     public static void SerializeIndented<T>(T data, string path)
