@@ -14,6 +14,9 @@ internal class FileHelper
     private const int replaceAttempts = 20;
     private static readonly TimeSpan replaceRetryDelay = TimeSpan.FromMilliseconds(25);
     private static readonly Regex sizeRegex = new(@"^(?<size>[0-9.,]+)\s?(?<unit>[A-z]+)$");
+    // UTF-8 without a byte order mark: it carries no information in UTF-8, JSON forbids it (RFC 8259) and shebangs and
+    // several Linux tools break on it. Reading still accepts files that have one.
+    private static readonly Encoding defaultEncoding = new UTF8Encoding(false);
     private readonly PathHelper pathHelper;
 
     public FileHelper(PathHelper pathHelper)
@@ -51,12 +54,12 @@ internal class FileHelper
         path = this.pathHelper.ToAbsolute(path);
         if (!atomic)
         {
-            File.WriteAllText(path, content, encoding ?? Encoding.UTF8);
+            File.WriteAllText(path, content, encoding ?? defaultEncoding);
             return;
         }
         WriteAtomic(path, stream =>
         {
-            using StreamWriter writer = new(stream, encoding ?? Encoding.UTF8, 4096, true);
+            using StreamWriter writer = new(stream, encoding ?? defaultEncoding, 4096, true);
             writer.Write(content);
         });
     }
@@ -64,7 +67,7 @@ internal class FileHelper
     public void AppendAllText(string path, string content, Encoding encoding = null)
     {
         path = this.pathHelper.ToAbsolute(path);
-        File.AppendAllText(path, content, encoding ?? Encoding.UTF8);
+        File.AppendAllText(path, content, encoding ?? defaultEncoding);
     }
 
     public void WriteAllBytes(string path, byte[] content, bool atomic = true)
