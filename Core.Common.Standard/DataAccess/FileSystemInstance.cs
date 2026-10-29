@@ -94,14 +94,14 @@ namespace KY.Core.DataAccess
             return this.ReadAllText(this.pathHelper.Combine(path, fileName), encoding);
         }
 
-        public void WriteAllText(string path, string content, Encoding encoding = null)
+        public void WriteAllText(string path, string content, Encoding encoding = null, bool atomic = true)
         {
-            this.fileHelper.WriteAllText(path, content, encoding);
+            this.fileHelper.WriteAllText(path, content, encoding, atomic);
         }
 
-        public void WriteAllText(string path, string fileName, string content, Encoding encoding = null)
+        public void WriteAllText(string path, string fileName, string content, Encoding encoding = null, bool atomic = true)
         {
-            this.WriteAllText(this.pathHelper.Combine(path, fileName), content, encoding);
+            this.WriteAllText(this.pathHelper.Combine(path, fileName), content, encoding, atomic);
         }
 
         public void AppendAllText(string path, string content, Encoding encoding = null)
@@ -109,9 +109,9 @@ namespace KY.Core.DataAccess
             this.fileHelper.AppendAllText(path, content, encoding);
         }
 
-        public void WriteAllBytes(string path, byte[] content)
+        public void WriteAllBytes(string path, byte[] content, bool atomic = true)
         {
-            this.fileHelper.WriteAllBytes(path, content);
+            this.fileHelper.WriteAllBytes(path, content, atomic);
         }
 
         public bool FileExists(params string[] pathChunks)

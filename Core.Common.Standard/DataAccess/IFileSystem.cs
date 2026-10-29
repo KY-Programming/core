@@ -21,10 +21,10 @@ namespace KY.Core.DataAccess
         string[] GetFiles(string path, string searchPattern = null, SearchOption option = SearchOption.TopDirectoryOnly);
         string ReadAllText(string path, Encoding encoding = null);
         string ReadAllText(string path, string fileName, Encoding encoding = null);
-        void WriteAllText(string path, string content, Encoding encoding = null);
-        void WriteAllText(string path, string fileName, string content, Encoding encoding = null);
+        void WriteAllText(string path, string content, Encoding encoding = null, bool atomic = true);
+        void WriteAllText(string path, string fileName, string content, Encoding encoding = null, bool atomic = true);
         void AppendAllText(string path, string content, Encoding encoding = null);
-        void WriteAllBytes(string path, byte[] content);
+        void WriteAllBytes(string path, byte[] content, bool atomic = true);
         bool FileExists(params string[] pathChunks);
         void DeleteFile(params string[] pathChunks);
         string[] ReadAllLines(string path, Encoding encoding = null);

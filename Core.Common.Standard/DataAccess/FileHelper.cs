@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Xml.Linq;
 
 // ReSharper disable UseFileSystem
@@ -10,6 +11,8 @@ namespace KY.Core.DataAccess;
 
 internal class FileHelper
 {
+    private const int replaceAttempts = 20;
+    private static readonly TimeSpan replaceRetryDelay = TimeSpan.FromMilliseconds(25);
     private static readonly Regex sizeRegex = new(@"^(?<size>[0-9.,]+)\s?(?<unit>[A-z]+)$");
     private readonly PathHelper pathHelper;
 
@@ -43,10 +46,19 @@ internal class FileHelper
         return File.ReadAllText(path, encoding ?? Encoding.UTF8);
     }
 
-    public void WriteAllText(string path, string content, Encoding encoding = null)
+    public void WriteAllText(string path, string content, Encoding encoding = null, bool atomic = true)
     {
         path = this.pathHelper.ToAbsolute(path);
-        File.WriteAllText(path, content, encoding ?? Encoding.UTF8);
+        if (!atomic)
+        {
+            File.WriteAllText(path, content, encoding ?? Encoding.UTF8);
+            return;
+        }
+        WriteAtomic(path, stream =>
+        {
+            using StreamWriter writer = new(stream, encoding ?? Encoding.UTF8, 4096, true);
+            writer.Write(content);
+        });
     }
 
     public void AppendAllText(string path, string content, Encoding encoding = null)
@@ -55,10 +67,15 @@ internal class FileHelper
         File.AppendAllText(path, content, encoding ?? Encoding.UTF8);
     }
 
-    public void WriteAllBytes(string path, byte[] content)
+    public void WriteAllBytes(string path, byte[] content, bool atomic = true)
     {
         path = this.pathHelper.ToAbsolute(path);
-        File.WriteAllBytes(path, content);
+        if (!atomic)
+        {
+            File.WriteAllBytes(path, content);
+            return;
+        }
+        WriteAtomic(path, stream => stream.Write(content, 0, content.Length));
     }
 
     public bool Exists(params string[] pathChunks)
@@ -115,17 +132,101 @@ internal class FileHelper
     {
         from = this.pathHelper.ToAbsolute(from);
         to = this.pathHelper.ToAbsolute(to);
+#if NET
+        // Replaces the target in one rename, without the moment in which it does not exist
+        File.Move(from, to, overwrite);
+#else
         if (overwrite && File.Exists(to))
         {
             File.Delete(to);
         }
         File.Move(from, to);
+#endif
     }
 
     public void Write(string path, XElement xml)
     {
         path = this.pathHelper.ToAbsolute(path);
-        xml.Save(path);
+        WriteAtomic(path, xml.Save);
+    }
+
+    // Writes into a temporary file next to the target and renames it over the target. A reader sees the old or the new
+    // content, never a half written file: two concurrent writers to the same path do not block each other on Linux and
+    // would otherwise interleave, and a crash mid-write would leave a truncated file behind.
+    // The rename gives the target a new inode: a hard link to the old file keeps the old content, and a file that is
+    // itself a mount point (a Docker single-file bind mount) cannot be replaced at all.
+    private static void WriteAtomic(string path, Action<Stream> write)
+    {
+        path = ResolveLinkTarget(path);
+        string temporaryPath = Path.Combine(Path.GetDirectoryName(path) ?? string.Empty, $".{Path.GetFileName(path)}.{Guid.NewGuid():N}.tmp");
+        try
+        {
+            using (FileStream stream = new(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+                write(stream);
+                stream.Flush(true);
+            }
+            Replace(temporaryPath, path);
+        }
+        catch
+        {
+            DeleteTemporaryFile(temporaryPath);
+            throw;
+        }
+    }
+
+    // A symbolic link stays a link: the file it points to is replaced
+    private static string ResolveLinkTarget(string path)
+    {
+#if NET
+        FileInfo file = new(path);
+        if (file.LinkTarget != null)
+        {
+            return file.ResolveLinkTarget(true)?.FullName ?? path;
+        }
+#endif
+        return path;
+    }
+
+    // On Windows the rename fails while a reader holds the target open without FileShare.Delete (File.ReadAllText does),
+    // so it is retried for a moment. On Linux it never waits for readers.
+    private static void Replace(string temporaryPath, string path)
+    {
+        for (int attempt = 1; ; attempt++)
+        {
+            try
+            {
+#if NET
+                File.Move(temporaryPath, path, true);
+#else
+                if (File.Exists(path))
+                {
+                    File.Replace(temporaryPath, path, null);
+                }
+                else
+                {
+                    File.Move(temporaryPath, path);
+                }
+#endif
+                return;
+            }
+            catch (Exception exception) when (attempt < replaceAttempts && exception is IOException or UnauthorizedAccessException)
+            {
+                Thread.Sleep(replaceRetryDelay);
+            }
+        }
+    }
+
+    private static void DeleteTemporaryFile(string temporaryPath)
+    {
+        try
+        {
+            File.Delete(temporaryPath);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // The write already failed and that exception is the one that matters; a leftover hidden .tmp file is harmless
+        }
     }
 
     public string FormatSize(long size)

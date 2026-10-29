@@ -89,19 +89,24 @@ public static class FileSystem
         return ReadAllText(pathHelper.Combine(path, fileName), encoding);
     }
 
-    public static void WriteAllText(string path, string content, Encoding encoding = null)
+    public static void WriteAllText(string path, string content, Encoding encoding = null, bool atomic = true)
     {
-        fileHelper.WriteAllText(path, content, encoding);
+        fileHelper.WriteAllText(path, content, encoding, atomic);
     }
 
-    public static void WriteAllText(string path, string fileName, string content, Encoding encoding = null)
+    public static void WriteAllText(string path, string fileName, string content, Encoding encoding = null, bool atomic = true)
     {
-        WriteAllText(pathHelper.Combine(path, fileName), content, encoding);
+        WriteAllText(pathHelper.Combine(path, fileName), content, encoding, atomic);
     }
 
     public static void AppendAllText(string path, string content, Encoding encoding = null)
     {
         fileHelper.AppendAllText(path, content, encoding);
+    }
+
+    public static void WriteAllBytes(string path, byte[] content, bool atomic = true)
+    {
+        fileHelper.WriteAllBytes(path, content, atomic);
     }
 
     public static bool FileExists(params string[] pathChunks)
