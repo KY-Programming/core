@@ -44,7 +44,14 @@ namespace KY.Core
             {
                 if (this.queue.Count > 0)
                 {
-                    this.WorkEntries(this.queue.DequeueAll());
+                    List<LogEntry> entries = this.queue.DequeueAll();
+                    if (!this.WorkEntries(entries))
+                    {
+                        // Nothing can have been queued meanwhile (Write waits for the lock), so they keep their order
+                        // and go out with the next run. No limit: a receiver that is down for good is noticed anyway.
+                        entries.ForEach(this.queue.Enqueue);
+                    }
+                    // Also when they stay queued: Wait (on shutdown) must not block on a receiver that is down
                     this.resetEvent.Set();
                 }
             }
@@ -52,7 +59,8 @@ namespace KY.Core
             this.sleepTimer.Start();
         }
 
-        protected abstract void WorkEntries(List<LogEntry> entry);
+        /// <returns>False when the entries could not be handled and should be tried again with the next run.</returns>
+        protected abstract bool WorkEntries(List<LogEntry> entries);
 
         public void Wait()
         {
