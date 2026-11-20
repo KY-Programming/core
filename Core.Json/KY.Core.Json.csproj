@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFrameworks>netstandard2.0;net11.0</TargetFrameworks>
         <RootNamespace>KY.Core</RootNamespace>
-        <Version>10.1.0</Version>
+        <Version>11.0.0</Version>
         <Authors>KY-Programming</Authors>
         <Company>KY-Programmingp</Company>
         <Product>KY.Core</Product>
@@ -13,7 +13,8 @@
         </Description>
         <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
         <PackageProjectUrl>https://github.com/KY-Programming/core</PackageProjectUrl>
-        <PackageIconUrl>https://ky-programming.de/images/logos/128.png</PackageIconUrl>
+        <PackageIcon>icon.png</PackageIcon>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
         <RepositoryUrl>https://github.com/KY-Programming/core</RepositoryUrl>
         <PackageTags>KY Core Json</PackageTags>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -23,6 +24,11 @@
     <ItemGroup>
         <PackageReference Include="KY.Core.Common" Version="11.0.1" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="icon.png" Pack="true" PackagePath="\" />
+        <None Include="README.md" Pack="true" PackagePath="\" />
     </ItemGroup>
 
 </Project>
